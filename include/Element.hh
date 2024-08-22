@@ -3,21 +3,17 @@
 
 #include <string>
 
-// An element can be in exactly one group;
-// so, it keeps a reference to it.
-// This reference is checked later
-// when the element is used in a group.
-
-class Group;
+// Class Element is mainly a 'wrapper' class for group elements;
+// when an element is more than just a number,
+// wrapping its fields in an Element simplifies
+// passing elements to methods.
 
 class Element {
 public:
-  Element(Group* g);
-  bool belongsTo(Group* g) const;
   virtual ~Element() = default;
+
+  // I/O methods
   virtual std::string toString() const = 0;
-protected:
-  Group* group;
 };
 
 #endif
