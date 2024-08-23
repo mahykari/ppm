@@ -4,10 +4,14 @@
 #include "Group.hh"
 #include "Element.hh"
 
-class CyclicGroup : public Group {
+// Refer to the definition of Group
+// for an explanation of the template argument E.
+template <class E>
+class CyclicGroup : public Group<E> {
 public:
-  CyclicGroup(GroupType type);
-  virtual std::unique_ptr<Element> randomGenerator() = 0;
+  // A cyclic group has at least one generator;
+  // Method randomGenerator() returns one of them at random.
+  virtual E randomGenerator() = 0;
 };
 
 #endif

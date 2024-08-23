@@ -3,14 +3,19 @@
 
 #include <gmp.h>
 #include "CyclicGroup.hh"
+#include "BigInt.hh"
 
-class QuadraticResidueGroup : public CyclicGroup {
+class QuadraticResidueGroup
+  : public CyclicGroup<BigInt> {
 public:
   QuadraticResidueGroup(mpz_t p);
-  ~QuadraticResidueGroup();
-  std::unique_ptr<Element> randomGenerator();
-  std::unique_ptr<Element> mul(Element* a, Element* b);
-  std::unique_ptr<Element> exp(Element* a, mpz_t n);
+  ~QuadraticResidueGroup() override;
+
+  BigInt randomGenerator() override;
+  BigInt mul(const BigInt& a, const BigInt& b) override;
+  BigInt exp(const BigInt& a, mpz_t n) override;
+
+  std::string toString() const override;
 private:
   mpz_t primeModulus;
   mpz_t smallPrime;

@@ -1,14 +1,12 @@
 #include <iostream>
-#include "BigIntegerElement.hh"
+#include "BigInt.hh"
 
-using BigInt = BigIntegerElement;
-
-BigInt::BigIntegerElement(Group* g, mpz_t n) : Element(g) {
+BigInt::BigInt(mpz_t n) {
   mpz_init(this->n);
   mpz_set(this->n, n);
 }
 
-BigInt::~BigIntegerElement() {
+BigInt::~BigInt() {
   mpz_clear(this->n);
 }
 

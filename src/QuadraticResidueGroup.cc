@@ -1,14 +1,10 @@
 #include <memory>
 #include "QuadraticResidueGroup.hh"
-#include "BigIntegerElement.hh"
+#include "BigInt.hh"
 
 using QRGroup = QuadraticResidueGroup;
-using BigInt = BigIntegerElement;
-template <typename T> using UPtr = std::unique_ptr<T>;
 
-QRGroup::QuadraticResidueGroup(mpz_t p) 
-  : CyclicGroup(GroupType::QUADRATIC_RESIDUE)
-{
+QRGroup::QuadraticResidueGroup(mpz_t p) {
   mpz_init(this->primeModulus);
   mpz_set(this->primeModulus, p);
 
@@ -19,9 +15,10 @@ QRGroup::QuadraticResidueGroup(mpz_t p)
 
 QRGroup::~QuadraticResidueGroup() {
   mpz_clear(this->primeModulus);
+  mpz_clear(this->smallPrime);
 }
 
-UPtr<Element> QRGroup::randomGenerator() {
+BigInt QRGroup::randomGenerator() {
   // For any safe prime p,
   // 4 is a generator of the group of quadratic residues modulo p.
   // So, to get a random generator,
@@ -43,23 +40,27 @@ UPtr<Element> QRGroup::randomGenerator() {
   while (mpz_sgn(exp) == 0)
     mpz_urandomm(exp, state, this->smallPrime);
   mpz_powm(g, g, exp, this->primeModulus);
-  return std::make_unique<BigInt>(this, g);
+  return {g};
 }
 
-UPtr<Element> QRGroup::mul(Element* a, Element* b) {
+BigInt QRGroup::mul(const BigInt& a, const BigInt& b) {
   mpz_t rop;
   mpz_init(rop);
-  auto a_ = dynamic_cast<BigInt*>(a);
-  auto b_ = dynamic_cast<BigInt*>(b);
-  mpz_mul(rop, a_->n, b_->n);
+  mpz_mul(rop, a.n, b.n);
   mpz_mod(rop, rop, this->primeModulus);
-  return std::make_unique<BigInt>(this, rop);
+  return {rop};
 }
 
-UPtr<Element> QRGroup::exp(Element* a, mpz_t n) {
+BigInt QRGroup::exp(const BigInt& a, mpz_t n) {
   mpz_t rop;
   mpz_init(rop);
-  auto a_ = dynamic_cast<BigInt*>(a);
-  mpz_powm(rop, a_->n, n, this->primeModulus);
-  return std::make_unique<BigInt>(this, rop);
+  mpz_powm(rop, a.n, n, this->primeModulus);
+  return {rop};
+}
+
+std::string QRGroup::toString() const {
+  mpz_t p;
+  mpz_init_set(p, this->primeModulus);
+  return "QuadraticResidueGroup(" 
+    + BigInt(p).toString() + ")";
 }
