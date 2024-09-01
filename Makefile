@@ -4,7 +4,7 @@ CCFLAGS := -std=c++17 -Wall -pedantic
 SOURCES := $(wildcard src/*.cc)
 OBJS := $(patsubst src/%.cc, build/%.o, $(SOURCES))
 INCLUDES := -Iinclude
-LIBS := -lgmp
+LIBS := -lgmp -lcrypto
 
 .PHONY: all build clean
 
