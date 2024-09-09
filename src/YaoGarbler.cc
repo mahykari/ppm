@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <random>
+#include "Utils.hh"
 #include "Exceptions.hh"
 #include "YaoGarbler.hh"
 
@@ -27,9 +29,12 @@ GarbledGate YaoGarbler::enc(
 
   // Garbled gate is a random permutation of the encrypted values.
   // ****************************************************************
-  // * TODO: Use a provably random permutation generator.           *
+  // * TODO: Use a provably random and secure permutation generator.*
   // ****************************************************************
-  std::random_shuffle(gate.begin(), gate.end());
+  auto seed = timeBasedSeed();
+  std::shuffle(
+    gate.begin(), gate.end(),
+    std::default_random_engine(seed));
   return gate;
 }
 
