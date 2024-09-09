@@ -21,8 +21,8 @@ GarbledGate YaoGarbler::enc(
   // * TODO: Generalize to arbitrary gates.                         *
   // ****************************************************************
   gate[0] = this->encImpl(left[0], right[0], out[1]);
-  gate[1] = this->encImpl(left[0], right[1], out[0]);
-  gate[2] = this->encImpl(left[1], right[0], out[0]);
+  gate[1] = this->encImpl(left[0], right[1], out[1]);
+  gate[2] = this->encImpl(left[1], right[0], out[1]);
   gate[3] = this->encImpl(left[1], right[1], out[0]);
 
   // Garbled gate is a random permutation of the encrypted values.
