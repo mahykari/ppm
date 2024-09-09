@@ -2,6 +2,7 @@
 #include <memory>
 #include <sstream>
 #include <iomanip>
+#include <chrono>
 #include <gmp.h>
 #include <openssl/evp.h>
 #include "Utils.hh"
@@ -61,4 +62,22 @@ std::string hashSha512(const std::string& s) {
       << (int) hash[i];
 
   return outputStream.str();
+}
+
+uint64_t timeBasedSeed() {
+  // The following comments are quoted
+  // from the CPlusPlus.com reference.
+  return
+    // "... Specifically, system_clock is
+    // a system-wide realtime clock."
+    std::chrono::system_clock
+    // "Returns the current time_point
+    // in the frame of the system_clock."
+    ::now()
+    // "Returns a duration object with
+    // the time span value between the epoch and the time point."
+    .time_since_epoch()
+    // "Returns the internal count (i.e., the representation value)
+    // of the duration object."
+    .count();
 }
