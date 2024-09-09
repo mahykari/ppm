@@ -46,12 +46,16 @@ Label YaoGarbler::dec(
   // ****************************************************************
   // * ASSUMPTION: Labels and ciphertexts are of appropriate sizes. *
   // ****************************************************************
+  std::vector<Label> labels;
   for (auto i = 0; i < 4; i++) {
     try {
-      return this->decImpl(left, right, gate[i]);
+      auto label = this->decImpl(left, right, gate[i]);
+      labels.push_back(label);
     } catch(const InvalidCipher& e) {
       continue;
     }
   }
-  throw InvalidCipher();
+  if (labels.size() != 1)
+    throw InvalidCipher();
+  return labels[0];
 }
