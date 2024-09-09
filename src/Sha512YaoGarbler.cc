@@ -4,6 +4,9 @@
 #include "Utils.hh"
 #include "Sha512YaoGarbler.hh"
 
+// Output of SHA-512 is 128 characters long,
+// when represented in hexadecimal.
+const size_t SHA512_HEX_SIZE = EVP_MAX_MD_SIZE * 2;
 const std::string CHECK_HEX_STRING = "abcd";
 const size_t CHECK_HEX_SIZE = CHECK_HEX_STRING.size();
 
@@ -13,7 +16,7 @@ bool Sha512YaoGarbler::checkLabels(std::vector<Label> labels) {
   auto size = labels[0].size();
   for (auto label : labels)
     valid &= label.size() == size;
-  valid &= size <= EVP_MAX_MD_SIZE - CHECK_HEX_SIZE;
+  valid &= size <= SHA512_HEX_SIZE - CHECK_HEX_SIZE;
   return valid;
 }
 
