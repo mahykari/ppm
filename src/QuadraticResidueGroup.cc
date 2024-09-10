@@ -1,4 +1,5 @@
 #include <memory>
+#include "Utils.hh"
 #include "QuadraticResidueGroup.hh"
 #include "BigInt.hh"
 
@@ -31,7 +32,7 @@ BigInt QRGroup::randomGenerator() {
   // TODO: use a better initialization;
   // Mersenne Twister is not cryptographically secure.
   gmp_randinit_mt(state);
-  gmp_randseed_ui(state, time(NULL));
+  gmp_randseed_ui(state, timeBasedSeed());
 
   mpz_t exp;
   mpz_init(exp);
