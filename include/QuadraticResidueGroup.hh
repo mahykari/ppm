@@ -8,17 +8,22 @@
 class QuadraticResidueGroup
   : public CyclicGroup<BigInt> {
 public:
-  QuadraticResidueGroup(mpz_t p);
+  explicit QuadraticResidueGroup(BigInt p);
   ~QuadraticResidueGroup() override;
 
   BigInt randomGenerator() override;
+  const BigInt baseGenerator = BigInt(4);
   BigInt mul(const BigInt& a, const BigInt& b) override;
-  BigInt exp(const BigInt& a, mpz_t n) override;
+  BigInt exp(const BigInt& a, const BigInt& n) override;
+  BigInt inv(const BigInt& a);
+  BigInt randomExponent();
+  BigInt order() override;
 
-  std::string toString() const override;
+  friend std::string toString(const QuadraticResidueGroup& g);
+
 private:
-  mpz_t primeModulus;
-  mpz_t smallPrime;
+  BigInt primeModulus;
+  BigInt smallPrime;
 };
 
 #endif
