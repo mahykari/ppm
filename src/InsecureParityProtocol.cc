@@ -5,9 +5,9 @@
 template <class P>
 InsecureParityProtocol<P>::InsecureParityProtocol(
   P bitHolder, P evaluator, P party)
-  : bitHolder(bitHolder), evaluator(evaluator)
+  : Protocol<UBPStage, P>(party),
+    bitHolder(bitHolder), evaluator(evaluator)
 {
-  this->party = party;
   this->currentStage = UBPStage::SendBitset;
   this->currentSender = bitHolder;
 }

@@ -17,7 +17,7 @@ public:
 protected:
   // Inherited classes can only be instantiated
   // using their own public constructors.
-  Protocol() = default;
+  explicit Protocol(P party) : party(party) {};
   S currentStage;
   P currentSender;
   P party;

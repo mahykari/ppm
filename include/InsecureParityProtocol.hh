@@ -26,7 +26,7 @@ public:
 private:
   // Parties' data are stored in the protocol,
   // as the protocol is the entity that requires them.
-  bool parity;
+  bool parity = false;
   P bitHolder, evaluator;
 };
 
