@@ -5,7 +5,7 @@
 #include <chrono>
 #include <gmp.h>
 #include <openssl/evp.h>
-#include "Utils.hh"
+#include "MathUtils.hh"
 
 namespace {
   class OpenSSLFree {
@@ -80,4 +80,46 @@ uint64_t timeBasedSeed() {
     // "Returns the internal count (i.e., the representation value)
     // of the duration object."
     .count();
+}
+
+bool isSophieGermain(mpz_t p) {
+  /* From GMP documentation for
+  mpz_probab_prime_p(const mpz_t n, int reps):
+  > ... Return 2 if n is definitely prime,
+  > return 1 if n is probably prime (without being certain),
+  > or return 0 if n is definitely non-prime. */
+  mpz_t p1;
+  mpz_init_set(p1, p);
+  mpz_mul_ui(p1, p1, 2);
+  mpz_add_ui(p1, p1, 1);
+  return mpz_probab_prime_p(p1, 40) >= 1;
+}
+
+void initPrimes() {
+  printf("I: initializing safe primes...\n");
+  for (size_t i = 0; i <= N_SAFEPRIMES; i++) {
+    mpz_init(SG_PRIMES[i]);
+    mpz_init_set_si(SAFE_PRIMES[i], -1);
+  }
+  mpz_t lb, ub;
+  mpz_init_set_ui(lb, 1);
+  mpz_init_set_ui(ub, 2);
+  for (size_t i = 0; i <= N_SAFEPRIMES; i++) {
+    mpz_t p;
+    mpz_init(p);
+    mpz_nextprime(p, lb);
+    while (not isSophieGermain(p) and mpz_cmp(p, ub) < 0)
+      mpz_nextprime(p, p);
+    if (not isSophieGermain(p) or mpz_cmp(p, ub) >= 0) {
+      mpz_set_si(SG_PRIMES[i], -1);
+      mpz_set_si(SAFE_PRIMES[i], -1);
+    }
+    else {
+      mpz_set(SG_PRIMES[i], p);
+      mpz_mul_ui(SAFE_PRIMES[i], p, 2);
+      mpz_add_ui(SAFE_PRIMES[i], SAFE_PRIMES[i], 1);
+    }
+    mpz_set(lb, ub);
+    mpz_mul_ui(ub, ub, 2);
+  }
 }

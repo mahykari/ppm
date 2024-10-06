@@ -3,15 +3,26 @@
 #include <string.h>
 #include <thread>
 #include <zmq.h>
-#include "InsecureParityProtocol.hh"
+
+#include "BellareMicaliOTProtocol.hh"
 #include "Party.hh"
+#include "MathUtils.hh"
+#include "StringUtils.hh"
 
 const char *SYSTEM_ENDPOINT = "tcp://*:5555";
 const char *MONITOR_ENDPOINT = "tcp://localhost:5556";
 
 using C = MonitoringComponent;
 
+class SetUp {
+public:
+  SetUp() {
+    initPrimes();
+  }
+};
+
 int main() {
+  SetUp();
   // For all return codes
   int rc = 0;
   printf("I: binding System...\n");
@@ -25,17 +36,27 @@ int main() {
   rc = zmq_connect(requester, MONITOR_ENDPOINT);
   assert (rc == 0);
 
-  auto protocol = InsecureParityProtocol(
-    C::System, C::Monitor, C::System);
+  BigInt primeModulus(SAFE_PRIMES[80]);
+  printf(
+    "I: using safe prime p= %s\n",
+    toString(primeModulus).c_str());
+  auto protocol = BellareMicaliOTProtocol(
+    QuadraticResidueGroup(primeModulus),
+    C::Monitor, C::System, C::System);
+  std::string messages[2] = {
+    std::string(10, '0') + std::string(10, '1'),
+    std::string(10, '2') + std::string(10, '3')
+  };
+  protocol.updateSender(messages);
   while (not protocol.isOver()) {
-    char buffer [10] = {0};
+    char buffer [512] = {};
     if (protocol.isSender()) {
       auto message = protocol.currentMessage();
       zmq_send (requester, message.c_str(), message.size(), 0);
-      zmq_recv (requester, buffer, 10, 0);
+      zmq_recv (requester, buffer, 0, 0);
     } else {
-      zmq_recv(responder, buffer, 10, 0);
-      zmq_send(responder, "", 0, 0);
+      zmq_recv(responder, buffer, sizeof buffer, 0);
+      zmq_send(responder, buffer, 0, 0);
     }
     protocol.next(std::string(buffer));
   }
