@@ -10,14 +10,14 @@
 template <class P>
 BellareMicaliOTProtocol<P>::BellareMicaliOTProtocol(
   QuadraticResidueGroup group,
-  P chooser, P sender, P party)
-  : Protocol<BellareMicaliOTStage, P>(party),
+  P chooser, P sender, P role)
+  : Protocol<BellareMicaliOTStage, P>(role),
     group(group),
     chooser(chooser), sender(sender)
 {
   this->currentStage = BellareMicaliOTStage::Init;
   this->currentSender = sender;
-  if (party == chooser)
+  if (role == chooser)
     this->chooserData = std::make_unique<BellareMicaliOTChooser>();
   else
     this->senderData = std::make_unique<BellareMicaliOTSender>();
@@ -25,7 +25,7 @@ BellareMicaliOTProtocol<P>::BellareMicaliOTProtocol(
 
 template <class P>
 void BellareMicaliOTProtocol<P>::updateChooser(bool sigma) {
-  assert (this->party == this->chooser and this->chooserData);
+  assert (this->role == this->chooser and this->chooserData);
   this->chooserData->sigma = sigma;
 }
 
@@ -33,7 +33,7 @@ template <class P>
 void BellareMicaliOTProtocol<P>::updateSender(
   std::string messages[2])
 {
-  assert (this->party == this->sender and this->senderData);
+  assert (this->role == this->sender and this->senderData);
   this->senderData->messages[0] = messages[0];
   this->senderData->messages[1] = messages[1];
 }
@@ -42,7 +42,7 @@ template <class P>
 void BellareMicaliOTProtocol<P>::next(std::string message) {
   switch (this->currentStage) {
     case BellareMicaliOTStage::Init:
-      if (this->party == this->chooser) {
+      if (this->role == this->chooser) {
         // **********************************************************
         // ASSUMPTION: message contains the constant                *
         // encoded as a hexadecimal number.                         *
@@ -61,7 +61,7 @@ void BellareMicaliOTProtocol<P>::next(std::string message) {
       // public key for message 0,                                  *
       // encoded as a hexadecimal number.                           *
       // ************************************************************
-      if (this->party == this->sender) {
+      if (this->role == this->sender) {
         auto pubKey0 = BigInt(message, 16);
         printf("I: received public key %s\n",
           toString(pubKey0).c_str());
@@ -75,7 +75,7 @@ void BellareMicaliOTProtocol<P>::next(std::string message) {
       this->currentSender = this->sender;
       break;
     case BellareMicaliOTStage::SendEncryptedMessages:
-      if (this->party == this->chooser) {
+      if (this->role == this->chooser) {
         // **********************************************************
         // ASSUMPTION: message contains                             *
         // <rand0, enc0>, <rand1, enc1>                             *
@@ -118,12 +118,12 @@ template <class P>
 std::string BellareMicaliOTProtocol<P>::currentMessage() {
   switch (this->currentStage) {
     case BellareMicaliOTStage::Init:
-      if (this->party == this->sender) {
+      if (this->role == this->sender) {
         this->senderData->constant = this->group.randomGenerator();
         return toString(this->senderData->constant, 16);
       }
     case BellareMicaliOTStage::SendPublicKey:
-      if (this->party == this->chooser) {
+      if (this->role == this->chooser) {
         this->chooserData->key = this->group.randomExponent();
         auto pubKeySigma = this->group.exp(
           this->group.baseGenerator, this->chooserData->key);
@@ -141,7 +141,7 @@ std::string BellareMicaliOTProtocol<P>::currentMessage() {
         return toString(pubKeys[0], 16);
       }
     case BellareMicaliOTStage::SendEncryptedMessages:
-      if (this->party == this->sender) {
+      if (this->role == this->sender) {
         std::string randomStrs[2];
         std::string encryptedMessages[2];
         for (size_t i = 0; i < 2; i++) {

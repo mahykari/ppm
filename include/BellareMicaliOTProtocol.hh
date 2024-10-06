@@ -38,7 +38,7 @@ class BellareMicaliOTProtocol
 public:
   BellareMicaliOTProtocol(
     QuadraticResidueGroup group,
-    P chooser, P sender, P party);
+    P chooser, P sender, P role);
   void updateChooser(bool sigma);
   void updateSender(std::string messages[2]);
   void next(std::string message) override;
