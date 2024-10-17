@@ -6,6 +6,8 @@
 #include <memory>
 #include <gmp.h>
 
+  #include "BigInt.hh"
+
 // Using a template class as the group element
 // allows for tying the group to a specific element type;
 // e.g., the group of quadratic residues modulo prime p
@@ -20,10 +22,8 @@ public:
 
   // Group operations
   virtual E mul(const E& a, const E& b) = 0;
-  virtual E exp(const E& a, mpz_t n) = 0;
-
-  // I/O methods
-  virtual std::string toString() const = 0;
+  virtual E exp(const E& a, const E& n) = 0;
+  virtual BigInt order() = 0;
 };
 
 #endif

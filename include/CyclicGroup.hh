@@ -2,7 +2,6 @@
 #define CYCLIC_GROUP_HH
 
 #include "Group.hh"
-#include "Element.hh"
 
 // Refer to the definition of Group
 // for an explanation of the template argument E.

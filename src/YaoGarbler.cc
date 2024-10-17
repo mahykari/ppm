@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <random>
-#include "Utils.hh"
+#include "MathUtils.hh"
 #include "Exceptions.hh"
 #include "YaoGarbler.hh"
 
@@ -16,7 +16,7 @@ GarbledGate YaoGarbler::enc(
   labels.insert(labels.end(), out.begin(), out.end());
   if (not checkLabels(labels))
     throw InvalidLabels();
-  
+
   GarbledGate gate;
   // ****************************************************************
   // * ASSUMPTION: Every gate is a 2-input NAND gate.               *
@@ -51,9 +51,7 @@ Label YaoGarbler::dec(
     try {
       auto label = this->decImpl(left, right, gate[i]);
       labels.push_back(label);
-    } catch(const InvalidCipher& e) {
-      continue;
-    }
+    } catch(const InvalidCipher& e) {}
   }
   if (labels.size() != 1)
     throw InvalidCipher();

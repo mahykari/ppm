@@ -1,25 +1,29 @@
 CC := g++
-CCFLAGS := -std=c++17 -Wall -pedantic
+INCLUDES := -Iinclude
+CCFLAGS := -std=c++17 -Wall -pedantic $(INCLUDES)
 
-EXES := main System Monitor
+EXES := Test System Monitor
 SOURCES := $(wildcard src/*.cc)
 ALL-OBJS := $(patsubst src/%.cc, build/%.o, $(SOURCES))
 OBJS := $(filter-out \
   $(addprefix\
     build/,$(addsuffix .o,$(EXES))),\
   $(ALL-OBJS))
-INCLUDES := -Iinclude
-LIBS := -lgmp -lcrypto -lzmq
+LIBS := -lgmpxx -lgmp -lcrypto -lzmq
 
-.PHONY: all clean
+.PHONY: ignore all clean
 
-all: main System Monitor
+all: Test System Monitor
+
+ignore:
+	@echo "Adding EXES to .gitignore ..."
+	sed -i '/# binary output(s)/{n;s/.*/$(EXES)/}' .gitignore
 
 clean:
 	rm -f build/*.o $(EXES)
 
-main: $(OBJS) build/main.o
-	$(CC) $(CCFLAGS) -o main $(OBJS) build/$@.o $(LIBS)
+Test: $(OBJS) build/Test.o
+	$(CC) $(CCFLAGS) -o Test $(OBJS) build/$@.o $(LIBS)
 
 System: $(OBJS) build/System.o
 	$(CC) $(CCFLAGS) -o System $(OBJS) build/$@.o $(LIBS)
