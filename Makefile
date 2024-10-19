@@ -1,6 +1,6 @@
 CC := g++
 INCLUDES := -Iinclude
-CCFLAGS := -std=c++17 -Wall -pedantic $(INCLUDES)
+CCFLAGS := -std=c++17 -Wall -pedantic
 
 EXES := Test System Monitor
 SOURCES := $(wildcard src/*.cc)
@@ -20,16 +20,16 @@ ignore:
 	sed -i '/# binary output(s)/{n;s/.*/$(EXES)/}' .gitignore
 
 clean:
-	rm -f build/*.o $(EXES)
+	rm -f build/*.o bin/*
 
 Test: $(OBJS) build/Test.o
-	$(CC) $(CCFLAGS) -o Test $(OBJS) build/$@.o $(LIBS)
+	$(CC) $(CCFLAGS) -o bin/Test $(OBJS) build/$@.o $(LIBS)
 
 System: $(OBJS) build/System.o
-	$(CC) $(CCFLAGS) -o System $(OBJS) build/$@.o $(LIBS)
+	$(CC) $(CCFLAGS) -o bin/System $(OBJS) build/$@.o $(LIBS)
 
 Monitor: $(OBJS) build/Monitor.o
-	$(CC) $(CCFLAGS) -o Monitor $(OBJS) build/$@.o $(LIBS)
+	$(CC) $(CCFLAGS) -o bin/Monitor $(OBJS) build/$@.o $(LIBS)
 
 build/%.o: src/%.cc
 	$(CC) $(CCFLAGS) $(INCLUDES) -c -o $@ $<
