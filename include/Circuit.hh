@@ -10,37 +10,38 @@
 // so, they can refer to each other by their ID's.
 class Driver {
 public:
-  int id;
-  Driver(int id);
-  void drive(int gateId);
+  unsigned id;
+  Driver(unsigned id);
+  void drive(unsigned gateId);
   // A driver can 'drive' multiple gates,
   // ID's of which are stored in `drivenGates`.
-  std::vector<int> drivenGates;
+  std::vector<unsigned> drivenGates;
 };
 
 typedef std::unique_ptr<Driver> DriverPtr;
 
 class Gate : public Driver {
 public:
-  Gate(int id, int inputLeft, int inputRight);
-  int inputLeft;
-  int inputRight;
+  Gate(unsigned id, unsigned inputLeft, unsigned inputRight);
+  unsigned inputLeft;
+  unsigned inputRight;
 };
 
 class Circuit {
 public:
-  Circuit(int inputLength, int outputLength);
-  void addGate(int inputLeft, int inputRight);
+  Circuit(unsigned inputLength, unsigned outputLength);
+  void addGate(unsigned inputLeft, unsigned inputRight);
   std::vector<Driver*> shuffle();
+  std::vector<Driver*> get();
   // Method size() returns the number of *drivers* in the circuit,
   // i.e., this->drivers.size().
-  int size();
+  unsigned size();
 private:
   // A particular gate can be picked with just an ID,
   // as all gates are NAND gates.
-  int inputLength;
-  int outputLength;
-  int counter;
+  unsigned inputLength;
+  unsigned outputLength;
+  unsigned counter;
   std::vector<DriverPtr> drivers;
 };
 
