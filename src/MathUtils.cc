@@ -104,7 +104,7 @@ void initPrimes() {
   mpz_t lb, ub;
   mpz_init_set_ui(lb, 1);
   mpz_init_set_ui(ub, 2);
-  for (size_t i = 0; i <= N_SAFEPRIMES; i++) {
+  for (size_t i = 1; i <= N_SAFEPRIMES; i++) {
     mpz_t p;
     mpz_init(p);
     mpz_nextprime(p, lb);
@@ -112,13 +112,14 @@ void initPrimes() {
       mpz_nextprime(p, p);
     if (not isSophieGermain(p) or mpz_cmp(p, ub) >= 0) {
       mpz_set_si(SG_PRIMES[i], -1);
-      mpz_set_si(SAFE_PRIMES[i], -1);
+      mpz_set_si(SAFE_PRIMES[i + 1], -1);
     }
     else {
       mpz_set(SG_PRIMES[i], p);
-      mpz_mul_ui(SAFE_PRIMES[i], p, 2);
-      mpz_add_ui(SAFE_PRIMES[i], SAFE_PRIMES[i], 1);
+      mpz_mul_ui(SAFE_PRIMES[i + 1], p, 2);
+      mpz_add_ui(SAFE_PRIMES[i + 1], SAFE_PRIMES[i + 1], 1);
     }
+    mpz_clear(p);
     mpz_set(lb, ub);
     mpz_mul_ui(ub, ub, 2);
   }
