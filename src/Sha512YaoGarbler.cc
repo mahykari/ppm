@@ -8,7 +8,7 @@
 // when represented in hexadecimal.
 const size_t SHA512_HEX_SIZE = EVP_MAX_MD_SIZE * 2;
 // The last character is an XOR checksum.
-const size_t CHECK_HEX_SIZE = 1;
+const size_t CHECK_HEX_SIZE = 4;
 
 bool Sha512YaoGarbler::checkLabels(std::vector<Label> labels) {
   bool valid = true;
@@ -26,10 +26,9 @@ Ciphertext Sha512YaoGarbler::encImpl(
   auto s = left + right;
   auto h = hashSha512(s);
 
-  uint8_t check = 0;
-  for (size_t i = 0; i < out.size(); i++)
-    check ^= hexValue(out[i]);
-  auto out1 = out + HEX_ALPHABET[check];
+  auto check = hashSha512(out);
+  check = check.substr(0, CHECK_HEX_SIZE);
+  auto out1 = out + check;
 
   Ciphertext cipher(out1.size(), 0);
   for (size_t i = 0; i < out1.size(); i++)
@@ -47,11 +46,13 @@ Label Sha512YaoGarbler::decImpl(
   for (size_t i = 0; i < size; i++)
     label[i] = HEX_ALPHABET[hexValue(cipher[i]) ^ hexValue(h[i])];
 
-  uint8_t check = 0;
-  for (size_t i = 0; i < size - 1; i++)
-    check ^= hexValue(label[i]);
-
-  if (label[size - 1] != HEX_ALPHABET[check])
+  auto check = hashSha512(label.substr(0, size - CHECK_HEX_SIZE));
+  check = check.substr(0, CHECK_HEX_SIZE);
+  printf(
+    "D: Sha512YaoGarbler::decImpl: label %s, check: %s\n",
+    label.c_str(),
+    check.c_str());
+  if (label.substr(size - CHECK_HEX_SIZE) != check)
     throw InvalidCipher();
-  return label.substr(0, size - 1);
+  return label.substr(0, size - CHECK_HEX_SIZE);
 }

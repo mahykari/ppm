@@ -1,19 +1,8 @@
 #include <iostream>
-#include <memory>
-#include <string.h>
-#include <unistd.h>
-#include <zmq.h>
-
-#include "BellareMicaliOTProtocol.hh"
-#include "QuadraticResidueGroup.hh"
-#include "Party.hh"
 #include "MathUtils.hh"
-#include "StringUtils.hh"
-
-auto SYSTEM_ENDPOINT = "tcp://localhost:5555";
-auto MONITOR_ENDPOINT = "tcp://*:5556";
-
-using C = MonitoringComponent;
+#include "MessageHandler.hh"
+#include "LiuEtAlMonitoringProtocol.hh"
+#include "Circuit.hh"
 
 class SetUp {
 public:
@@ -22,39 +11,39 @@ public:
   }
 };
 
+namespace L = LiuEtAlMonitoringProtocol;
+
 int main (int argc, char *argv[]) {
   SetUp();
+  auto messageHandler = MessageHandler(L::SYSTEM_PORT, L::MONITOR_PORT);
 
-  printf ("Connecting to System...\n");
-  void *context = zmq_ctx_new ();
-  void *requester = zmq_socket (context, ZMQ_REQ);
-  zmq_connect(requester, SYSTEM_ENDPOINT);
+  unsigned securityParameter = 80;
+  auto primeModulus = BigInt(SAFE_PRIMES[securityParameter]);
+  printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
+  printf("D: first prime moduli: ");
+  for (int i = 0; i < 10; i++)
+    printf("%s ", BigInt(SAFE_PRIMES[i]).get_str(10).c_str());
+  printf("\n");
+  auto parameters = L::ParameterSet {
+    .gateCount = 3,
+    .monitorStateLength = 0,
+    .systemStateLength = 4,
+    .group = QuadraticResidueGroup(primeModulus),
+    .garbler = Sha512YaoGarbler(),
+    .securityParameter = securityParameter
+  };
 
-  printf("Binding Monitor...\n");
-  void *responder = zmq_socket (context, ZMQ_REP);
-  zmq_bind(responder, "tcp://*:5556");
+  auto circuit = Circuit(4, 1);
+  circuit.addGate(0, 1);
+  circuit.addGate(2, 3);
+  circuit.addGate(4, 5);
+  auto monitorMemory = L::MonitorMemory {
+    .circuit = circuit
+  };
 
-  BigInt primeModulus(SAFE_PRIMES[80]);
-  printf(
-    "Using safe prime p=%s\n",
-    toString(primeModulus).c_str());
-  auto protocol = BellareMicaliOTProtocol(
-    QuadraticResidueGroup(primeModulus),
-    C::Monitor, C::System, C::Monitor);
-  protocol.updateChooser(1);
-  while (not protocol.isOver()) {
-    char buffer [512] = {};
-    if (protocol.isSender()) {
-      auto message = protocol.currentMessage();
-      zmq_send (requester, message.c_str(), message.size(), 0);
-      zmq_recv (requester, buffer, 0, 0);
-    } else {
-      zmq_recv(responder, buffer, sizeof buffer, 0);
-      zmq_send(responder, buffer, 0, 0);
-    }
-    protocol.next(std::string(buffer));
-  }
-  zmq_close (requester);
-  zmq_close(responder);
-  zmq_ctx_destroy (context);
+  auto interface = L::MonitorInterface(
+    parameters, monitorMemory, messageHandler);
+
+  interface.run();
+  exit(EXIT_SUCCESS);
 }
