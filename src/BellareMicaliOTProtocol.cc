@@ -1,181 +1,332 @@
-#include <vector>
-#include <string>
-#include <sstream>
-#include <cassert>
 #include "BellareMicaliOTProtocol.hh"
+#include "Exceptions.hh"
 #include "MathUtils.hh"
-#include "Party.hh"
 #include "StringUtils.hh"
 
-template <class P>
-BellareMicaliOTProtocol<P>::BellareMicaliOTProtocol(
-  QuadraticResidueGroup group,
-  P chooser, P sender, P role)
-  : Protocol<BellareMicaliOTStage, P>(role),
-    group(group),
-    chooser(chooser), sender(sender)
+namespace P = BellareMicaliOTProtocol;
+
+bool P::State::isSend() {
+  return false;
+}
+
+bool P::State::isRecv() {
+  return false;
+}
+
+std::string P::State::message() {
+  throw NonSendStateHasNoMessage();
+}
+
+P::SenderInterface::SenderInterface(
+  P::ParameterSet parameters,
+  P::SenderMemory memory,
+  MessageHandler& messageHandler)
+  : parameters(parameters),
+    memory(memory),
+    messageHandler(messageHandler) {
+  this->state = std::make_unique<InitSender>(
+    this->parameters, this->memory);
+}
+
+void P::SenderInterface::sync() {
+  if (this->state->isSend())
+    this->messageHandler.send(this->state->message());
+  else if (this->state->isRecv())
+    this->memory.receivedMessage = this->messageHandler.recv();
+}
+
+void P::SenderInterface::next() {
+  this->sync();
+  this->state = this->state->next();
+}
+
+void P::SenderInterface::run() {
+  while (this->state)
+    this->next();
+}
+
+P::ChooserInterface::ChooserInterface(
+  ParameterSet parameters,
+  ChooserMemory memory,
+  MessageHandler& messageHandler)
+  : parameters(parameters),
+    memory(memory),
+    messageHandler(messageHandler) {
+  this->state = std::make_unique<InitChooser>
+    (this->parameters, this->memory);
+}
+
+void P::ChooserInterface::sync() {
+  if (this->state->isSend())
+    this->messageHandler.send(this->state->message());
+  else if (this->state->isRecv())
+    this->memory.receivedMessage = this->messageHandler.recv();
+}
+
+void P::ChooserInterface::next() {
+  this->sync();
+  this->state = this->state->next();
+}
+
+void P::ChooserInterface::run() {
+  while (this->state)
+    this->next();
+}
+
+P::SenderState::SenderState(
+  ParameterSet& parameters, SenderMemory& memory)
+  : parameters(parameters), memory(memory) {}
+
+P::InitSender::InitSender(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+P::StatePtr P::InitSender::next() {
+  printf("I: InitSender::next\n");
+  return std::make_unique<GenerateConstant> (
+    this->parameters, this->memory);
+}
+
+P::GenerateConstant::GenerateConstant(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+P::StatePtr P::GenerateConstant::next() {
+  printf("I: GenerateConstant::next\n");
+  this->memory.constant = this->parameters.group.randomGenerator();
+  return std::make_unique<SendConstant> (
+    this->parameters, this->memory);
+}
+
+P::SendConstant::SendConstant(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+bool P::SendConstant::isSend() {
+  return true;
+}
+
+std::string P::SendConstant::message() {
+  return toString(this->memory.constant, P::MSG_NUM_BASE);
+}
+
+P::StatePtr P::SendConstant::next() {
+  printf("I: SendConstant::next\n");
+  return std::make_unique<RecvPublicKey> (
+    this->parameters, this->memory);
+}
+
+P::RecvPublicKey::RecvPublicKey(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+bool P::RecvPublicKey::isRecv() {
+  return true;
+}
+
+void P::RecvPublicKey::evaluatePublicKeys(BigInt receivedKey) {
+  auto group = this->parameters.group;
+  this->memory.publicKeys[0] = receivedKey;
+  this->memory.publicKeys[1] = group.mul(
+    this->memory.constant,
+    group.inv(receivedKey)
+  );
+}
+
+P::StatePtr P::RecvPublicKey::next() {
+  printf("I: RecvPublicKey::next\n");
+  auto& message = this->memory.receivedMessage;
+  auto receivedKey = BigInt(message, P::MSG_NUM_BASE);
+  this->evaluatePublicKeys(receivedKey);
+  return std::make_unique<EncryptMessages> (
+    this->parameters, this->memory);
+}
+
+P::EncryptMessages::EncryptMessages(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+std::string P::EncryptMessages::encrypt(
+  const std::string& message, const std::string& key)
 {
-  this->currentStage = BellareMicaliOTStage::Init;
-  this->currentSender = sender;
-  if (role == chooser)
-    this->chooserData = std::make_unique<BellareMicaliOTChooser>();
-  else
-    this->senderData = std::make_unique<BellareMicaliOTSender>();
+  size_t textLen = message.length();
+  std::string encryptedMessage(textLen, '0');
+  for (size_t i = 0; i < textLen; i++) {
+    encryptedMessage[i] = HEX_ALPHABET[
+      hexValue(message[i]) ^ hexValue(key[i])];
+  }
+  return encryptedMessage;
 }
 
-template <class P>
-void BellareMicaliOTProtocol<P>::updateChooser(bool sigma) {
-  assert (this->role == this->chooser and this->chooserData);
-  this->chooserData->sigma = sigma;
+P::StatePtr P::EncryptMessages::next() {
+  printf("I: EncryptMessages::next\n");
+  auto group = this->parameters.group;
+  for (size_t i = 0; i < 2; i++) {
+    auto randomExponent = this->parameters.group.randomExponent();
+    this->memory.encryptionElements[i] = toString(
+      group.exp(group.baseGenerator, randomExponent), P::MSG_NUM_BASE);
+    auto expdPubKey = toString(
+      group.exp(this->memory.publicKeys[i], randomExponent), P::MSG_NUM_BASE);
+    auto hashedExpdPubKey = hashSha512(expdPubKey);
+    auto message = this->memory.messages[i];
+    this->memory.encryptedMessages[i] =
+      this->encrypt(message, hashedExpdPubKey);
+  }
+  return std::make_unique<SendEncryptedMessages> (
+    this->parameters, this->memory);
 }
 
-template <class P>
-void BellareMicaliOTProtocol<P>::updateSender(
-  std::string messages[2])
+P::SendEncryptedMessages::SendEncryptedMessages(
+  ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+bool P::SendEncryptedMessages::isSend() {
+  return true;
+}
+
+std::string P::SendEncryptedMessages::message() {
+  return
+    this->memory.encryptionElements[0] + ' '
+    + this->memory.encryptedMessages[0] + ' '
+    + this->memory.encryptionElements[1] + ' '
+    + this->memory.encryptedMessages[1];
+}
+
+P::StatePtr P::SendEncryptedMessages::next() {
+  printf("I: SendEncryptedMessages::next\n");
+  return std::make_unique<SenderDone> (
+    this->parameters, this->memory);
+}
+
+P::SenderDone::SenderDone(ParameterSet& parameters, SenderMemory& memory)
+  : SenderState(parameters, memory) {}
+
+P::StatePtr P::SenderDone::next() {
+  printf("I: SenderDone::next\n");
+  return nullptr;
+}
+
+P::ChooserState::ChooserState(
+  ParameterSet& parameters, ChooserMemory& memory)
+  : parameters(parameters), memory(memory) {}
+
+P::InitChooser::InitChooser(ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+P::StatePtr P::InitChooser::next() {
+  printf("I: InitChooser::next\n");
+  return std::make_unique<RecvConstant> (
+    this->parameters, this->memory);
+}
+
+P::RecvConstant::RecvConstant(ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+bool P::RecvConstant::isRecv() {
+  return true;
+}
+
+P::StatePtr P::RecvConstant::next() {
+  printf("I: RecvConstant::next\n");
+  std::cout << "D: received message: " << this->memory.receivedMessage << '\n';
+  auto& message = this->memory.receivedMessage;
+  this->memory.senderConstant = BigInt(message, P::MSG_NUM_BASE);
+  return std::make_unique<GeneratePublicKey> (
+    this->parameters, this->memory);
+}
+
+P::GeneratePublicKey::GeneratePublicKey(
+  ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+P::StatePtr P::GeneratePublicKey::next() {
+  printf("I: GeneratePublicKey::next\n");
+  this->memory.key = this->parameters.group.randomExponent();
+  return std::make_unique<SendPublicKey> (
+    this->parameters, this->memory);
+}
+
+P::SendPublicKey::SendPublicKey(
+  ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+bool P::SendPublicKey::isSend() {
+  return true;
+}
+
+std::string P::SendPublicKey::message() {
+  auto group = this->parameters.group;
+  BigInt pubKeys[2];
+  const bool sigma = this->memory.sigma;
+  pubKeys[sigma] = group.exp(
+    group.baseGenerator, this->memory.key);
+  pubKeys[not sigma] = group.mul(
+    this->memory.senderConstant,
+    group.inv(pubKeys[sigma]));
+  return toString(pubKeys[0], P::MSG_NUM_BASE);
+}
+
+P::StatePtr P::SendPublicKey::next() {
+  printf("I: SendPublicKey::next\n");
+  return std::make_unique<RecvEncryptedMessages> (
+    this->parameters, this->memory);
+}
+
+P::RecvEncryptedMessages::RecvEncryptedMessages(
+  ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+bool P::RecvEncryptedMessages::isRecv() {
+  return true;
+}
+
+P::StatePtr P::RecvEncryptedMessages::next() {
+  printf("I: RecvEncryptedMessages::next\n");
+  auto& message = this->memory.receivedMessage;
+  std::string parsedMessage[4];
+  std::stringstream ss(message);
+  for (size_t i = 0; i < 4; i++)
+    ss >> parsedMessage[i];
+  auto elementIndex = 2 * this->memory.sigma;
+  this->memory.encryptionElement = parsedMessage[elementIndex];
+  this->memory.encryptedMessage = parsedMessage[elementIndex + 1];
+  return std::make_unique<DecryptChosenMessage> (
+    this->parameters, this->memory);
+}
+
+P::DecryptChosenMessage::DecryptChosenMessage(
+  ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
+
+std::string P::DecryptChosenMessage::decrypt(
+  const std::string& message, const std::string& key)
 {
-  assert (this->role == this->sender and this->senderData);
-  this->senderData->messages[0] = messages[0];
-  this->senderData->messages[1] = messages[1];
-}
-
-template <class P>
-void BellareMicaliOTProtocol<P>::next(std::string message) {
-  switch (this->currentStage) {
-    case BellareMicaliOTStage::Init:
-      if (this->role == this->chooser) {
-        // **********************************************************
-        // ASSUMPTION: message contains the constant                *
-        // encoded as a hexadecimal number.                         *
-        // **********************************************************
-        auto sendConst = BigInt(message, 16);
-        this->chooserData->senderConstant = sendConst;
-        printf("I: received sender constant %s\n",
-          toString(sendConst).c_str());
-      }
-      this->currentStage = BellareMicaliOTStage::SendPublicKey;
-      this->currentSender = this->chooser;
-      break;
-    case BellareMicaliOTStage::SendPublicKey:
-      // ************************************************************
-      // ASSUMPTION: message contains PK0, i.e.,                    *
-      // public key for message 0,                                  *
-      // encoded as a hexadecimal number.                           *
-      // ************************************************************
-      if (this->role == this->sender) {
-        auto pubKey0 = BigInt(message, 16);
-        printf("I: received public key %s\n",
-          toString(pubKey0).c_str());
-        this->senderData->publicKeys[0] = pubKey0;
-        this->senderData->publicKeys[1] = this->group.mul(
-          this->senderData->constant,
-          this->group.inv(pubKey0));
-      }
-      this->currentStage =
-        BellareMicaliOTStage::SendEncryptedMessages;
-      this->currentSender = this->sender;
-      break;
-    case BellareMicaliOTStage::SendEncryptedMessages:
-      if (this->role == this->chooser) {
-        // **********************************************************
-        // ASSUMPTION: message contains                             *
-        // <rand0, enc0>, <rand1, enc1>                             *
-        // encoded as four space-separated hexadecimal numbers.     *
-        // Both enc0 and enc1 have the same length,                 *
-        // which is determined from the protocol group order.       *
-        // **********************************************************
-        std::string randomStrs[2];
-        std::string encryptedMessages[2];
-        std::stringstream ss(message);
-        ss >> randomStrs[0] >> encryptedMessages[0]
-           >> randomStrs[1] >> encryptedMessages[1];
-        printf(
-          "I: received encrypted messages <%s, %s> <%s, %s>\n",
-          randomStrs[0].c_str(), encryptedMessages[0].c_str(),
-          randomStrs[1].c_str(), encryptedMessages[1].c_str());
-        auto randSigma =
-          BigInt(randomStrs[this->chooserData->sigma], 16);
-        auto key = toString(
-          this->group.exp(
-            randSigma, this->chooserData->key), 16);
-        auto hashedKey = hashSha512(key);
-        auto cipherSigma =
-          encryptedMessages[this->chooserData->sigma];
-        size_t textLen = cipherSigma.length();
-        std::string decryptedMessage(textLen, '0');
-        for (size_t i = 0; i < textLen; i++) {
-          decryptedMessage[i] = HEX_ALPHABET[
-            hexValue(cipherSigma[i]) ^ hexValue(hashedKey[i])];
-        }
-        printf("I: decrypted message %s\n",
-          decryptedMessage.c_str());
-      }
-      this->currentStage = BellareMicaliOTStage::Done;
-    default: break;
+  size_t textLen = message.length();
+  std::string decryptedMessage(textLen, '0');
+  for (size_t i = 0; i < textLen; i++) {
+    decryptedMessage[i] = HEX_ALPHABET[
+      hexValue(message[i]) ^ hexValue(key[i])];
   }
+  return decryptedMessage;
 }
 
-template <class P>
-std::string BellareMicaliOTProtocol<P>::currentMessage() {
-  switch (this->currentStage) {
-    case BellareMicaliOTStage::Init:
-      if (this->role == this->sender) {
-        this->senderData->constant = this->group.randomGenerator();
-        return toString(this->senderData->constant, 16);
-      }
-    case BellareMicaliOTStage::SendPublicKey:
-      if (this->role == this->chooser) {
-        this->chooserData->key = this->group.randomExponent();
-        auto pubKeySigma = this->group.exp(
-          this->group.baseGenerator, this->chooserData->key);
-        BigInt pubKeys[2];
-        const bool sigma = this->chooserData->sigma;
-        pubKeys[sigma] = this->group.exp(
-          this->group.baseGenerator,
-          this->chooserData->key);
-        pubKeys[not sigma] = this->group.mul(
-          this->chooserData->senderConstant,
-          this->group.inv(pubKeys[sigma]));
-        std::cout
-          << "D: public keys are "
-          << pubKeys[0] << ' ' << pubKeys[1] << '\n';
-        return toString(pubKeys[0], 16);
-      }
-    case BellareMicaliOTStage::SendEncryptedMessages:
-      if (this->role == this->sender) {
-        std::string randomStrs[2];
-        std::string encryptedMessages[2];
-        for (size_t i = 0; i < 2; i++) {
-          auto randomExponent = this->group.randomExponent();
-          randomStrs[i] = toString(
-            this->group.exp(
-              this->group.baseGenerator,
-              randomExponent), 16);
-          auto expdPubKey = toString(
-            this->group.exp(
-              this->senderData->publicKeys[i],
-              randomExponent), 16);
-          auto hashedKey = hashSha512(expdPubKey);
-          auto message = this->senderData->messages[i];
-          size_t textLen = message.length();
-          encryptedMessages[i].resize(textLen);
-          for (size_t j = 0; j < textLen; j++) {
-            encryptedMessages[i][j] = HEX_ALPHABET[
-              hexValue(message[j]) ^ hexValue(hashedKey[j])];
-          }
-        }
-        std::string message =
-          randomStrs[0] + " " + encryptedMessages[0]
-          + " " + randomStrs[1] + " " + encryptedMessages[1];
-        printf("I: sending message %s\n", message.c_str());
-        return message;
-      }
-    default: return "";
-  }
+P::StatePtr P::DecryptChosenMessage::next() {
+  printf("I: DecryptChosenMessage::next\n");
+  auto group = this->parameters.group;
+  auto encryptionElement = BigInt(
+    this->memory.encryptionElement, P::MSG_NUM_BASE);
+  auto encryptionKey = group.exp(encryptionElement, this->memory.key);
+  auto hashedEncKey = hashSha512(toString(encryptionKey, P::MSG_NUM_BASE));
+  auto& encryptedMessage = this->memory.encryptedMessage;
+  this->memory.chosenMessage = this->decrypt(encryptedMessage, hashedEncKey);
+  printf("D: decrypted message %s\n", this->memory.chosenMessage.c_str());
+  return std::make_unique<ChooserDone> (this->parameters, this->memory);
 }
 
-template <class P>
-bool BellareMicaliOTProtocol<P>::isOver() {
-  return this->currentStage == BellareMicaliOTStage::Done;
-}
+P::ChooserDone::ChooserDone(ParameterSet& parameters, ChooserMemory& memory)
+  : ChooserState(parameters, memory) {}
 
-template class BellareMicaliOTProtocol<MonitoringComponent>;
+P::StatePtr P::ChooserDone::next() {
+  printf("I: ChooserDone::next\n");
+  return nullptr;
+}
