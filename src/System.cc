@@ -1,9 +1,11 @@
 #include <iostream>
 #include <zmq.h>
 #include "LiuEtAlMonitoringProtocol.hh"
+#include "BellareMicaliOTProtocol.hh"
 #include "MathUtils.hh"
 
 namespace L = LiuEtAlMonitoringProtocol;
+namespace B = BellareMicaliOTProtocol;
 
 class SetUp {
 public:
@@ -50,5 +52,23 @@ int main() {
     parameters, systemMemory, messageHandler);
 
   interface.run();
+
+  std::cout << std::string(80, '=') << '\n';
+  std::cout << "TESTING BELLARE-MICALI OT PROTOCOL" << '\n';
+  std::cout << std::string(80, '=') << '\n';
+
+  auto parameters1 = B::ParameterSet {
+    .group = QuadraticResidueGroup(primeModulus)
+  };
+
+  auto senderMemory = B::SenderMemory {
+    .messages = {"12345", "67890"},
+  };
+
+  auto interface1 = B::SenderInterface(
+    parameters1, senderMemory, messageHandler);
+
+  interface1.run();
+
   exit(EXIT_SUCCESS);
 }

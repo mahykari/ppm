@@ -1,6 +1,7 @@
 #include <iostream>
 #include "MathUtils.hh"
 #include "MessageHandler.hh"
+#include "BellareMicaliOTProtocol.hh"
 #include "LiuEtAlMonitoringProtocol.hh"
 #include "Circuit.hh"
 
@@ -12,6 +13,7 @@ public:
 };
 
 namespace L = LiuEtAlMonitoringProtocol;
+namespace B = BellareMicaliOTProtocol;
 
 int main (int argc, char *argv[]) {
   SetUp();
@@ -45,5 +47,19 @@ int main (int argc, char *argv[]) {
     parameters, monitorMemory, messageHandler);
 
   interface.run();
+
+  std::cout << std::string(80, '=') << '\n';
+  std::cout << "TESTING BELLARE-MICALI OT PROTOCOL" << '\n';
+  std::cout << std::string(80, '=') << '\n';
+
+  auto parameters1 = B::ParameterSet {
+    .group = QuadraticResidueGroup(primeModulus)
+  };
+
+  auto chooserMemory = B::ChooserMemory { .sigma = 1 };
+  auto interface1 = B::ChooserInterface(
+    parameters1, chooserMemory, messageHandler);
+  interface1.run();
+
   exit(EXIT_SUCCESS);
 }
