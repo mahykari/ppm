@@ -39,8 +39,8 @@ void P::SystemInterface::sync() {
   printf("D: SystemInterface::sync\n");
   if (this->state->isSend())
     this->messageHandler.send(this->state->message());
-  else if (this->state->isRecv()) {
-    this->memory.receivedMessage = this->messageHandler.recv();}
+  else if (this->state->isRecv())
+    this->memory.receivedMessage = this->messageHandler.recv();
 }
 
 void P::SystemInterface::next() {
@@ -70,7 +70,6 @@ P::MonitorInterface::MonitorInterface(
 
 void P::MonitorInterface::sync() {
   printf("D: MonitorInterface::sync\n");
-  assert (this->state);
   if (this->state->isSend())
     this->messageHandler.send(this->state->message());
   else if (this->state->isRecv())
