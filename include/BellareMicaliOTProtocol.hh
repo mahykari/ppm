@@ -46,16 +46,16 @@ namespace BellareMicaliOTProtocol {
   class SenderInterface {
   public:
     SenderInterface(
-      ParameterSet parameters,
-      SenderMemory memory,
-      MessageHandler& messageHandler);
+      ParameterSet* parameters,
+      SenderMemory* memory,
+      MessageHandler* messageHandler);
     void sync();
     void next();
     void run();
   private:
-    ParameterSet parameters;
-    SenderMemory memory;
-    MessageHandler& messageHandler;
+    ParameterSet* parameters;
+    SenderMemory* memory;
+    MessageHandler* messageHandler;
     StatePtr state;
   };
 
@@ -76,52 +76,52 @@ namespace BellareMicaliOTProtocol {
   class ChooserInterface {
   public:
     ChooserInterface(
-      ParameterSet parameters,
-      ChooserMemory memory,
-      MessageHandler& messageHandler);
+      ParameterSet* parameters,
+      ChooserMemory* memory,
+      MessageHandler* messageHandler);
     void sync();
     void next();
     void run();
   private:
-    ParameterSet parameters;
-    ChooserMemory memory;
-    MessageHandler& messageHandler;
+    ParameterSet* parameters;
+    ChooserMemory* memory;
+    MessageHandler* messageHandler;
     StatePtr state;
   };
 
   class SenderState : public State {
   public:
-    SenderState(ParameterSet& parameters, SenderMemory& memory);
+    SenderState(ParameterSet* parameters, SenderMemory* memory);
     virtual StatePtr next() = 0;
   protected:
-    ParameterSet& parameters;
-    SenderMemory& memory;
+    ParameterSet* parameters;
+    SenderMemory* memory;
   };
 
   class ChooserState : public State {
   public:
-    ChooserState(ParameterSet& parameters, ChooserMemory& memory);
+    ChooserState(ParameterSet* parameters, ChooserMemory* memory);
     virtual StatePtr next() = 0;
   protected:
-    ParameterSet& parameters;
-    ChooserMemory& memory;
+    ParameterSet* parameters;
+    ChooserMemory* memory;
   };
 
   class InitSender : public SenderState {
   public:
-    InitSender(ParameterSet& parameters, SenderMemory& memory);
+    InitSender(ParameterSet* parameters, SenderMemory* memory);
     StatePtr next() override;
   };
 
   class GenerateConstant : public SenderState {
   public:
-    GenerateConstant(ParameterSet& parameters, SenderMemory& memory);
+    GenerateConstant(ParameterSet* parameters, SenderMemory* memory);
     StatePtr next() override;
   };
 
   class SendConstant : public SenderState {
   public:
-    SendConstant(ParameterSet& parameters, SenderMemory& memory);
+    SendConstant(ParameterSet* parameters, SenderMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -129,7 +129,7 @@ namespace BellareMicaliOTProtocol {
 
   class RecvPublicKey : public SenderState {
   public:
-    RecvPublicKey(ParameterSet& parameters, SenderMemory& memory);
+    RecvPublicKey(ParameterSet* parameters, SenderMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   private:
@@ -138,7 +138,7 @@ namespace BellareMicaliOTProtocol {
 
   class EncryptMessages : public SenderState {
   public:
-    EncryptMessages(ParameterSet& parameters, SenderMemory& memory);
+    EncryptMessages(ParameterSet* parameters, SenderMemory* memory);
     StatePtr next() override;
   private:
     std::string encrypt(const std::string& message, const std::string& key);
@@ -146,7 +146,7 @@ namespace BellareMicaliOTProtocol {
 
   class SendEncryptedMessages : public SenderState {
   public:
-    SendEncryptedMessages(ParameterSet& parameters, SenderMemory& memory);
+    SendEncryptedMessages(ParameterSet* parameters, SenderMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -154,32 +154,32 @@ namespace BellareMicaliOTProtocol {
 
   class SenderDone : public SenderState {
   public:
-    SenderDone(ParameterSet& parameters, SenderMemory& memory);
+    SenderDone(ParameterSet* parameters, SenderMemory* memory);
     StatePtr next() override;
   };
 
   class InitChooser : public ChooserState {
   public:
-    InitChooser(ParameterSet& parameters, ChooserMemory& memory);
+    InitChooser(ParameterSet* parameters, ChooserMemory* memory);
     StatePtr next() override;
   };
 
   class RecvConstant : public ChooserState {
   public:
-    RecvConstant(ParameterSet& parameters, ChooserMemory& memory);
+    RecvConstant(ParameterSet* parameters, ChooserMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
 
   class GeneratePublicKey : public ChooserState {
   public:
-    GeneratePublicKey(ParameterSet& parameters, ChooserMemory& memory);
+    GeneratePublicKey(ParameterSet* parameters, ChooserMemory* memory);
     StatePtr next() override;
   };
 
   class SendPublicKey : public ChooserState {
   public:
-    SendPublicKey(ParameterSet& parameters, ChooserMemory& memory);
+    SendPublicKey(ParameterSet* parameters, ChooserMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -187,14 +187,14 @@ namespace BellareMicaliOTProtocol {
 
   class RecvEncryptedMessages : public ChooserState {
   public:
-    RecvEncryptedMessages(ParameterSet& parameters, ChooserMemory& memory);
+    RecvEncryptedMessages(ParameterSet* parameters, ChooserMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
 
   class DecryptChosenMessage : public ChooserState {
   public:
-    DecryptChosenMessage(ParameterSet& parameters, ChooserMemory& memory);
+    DecryptChosenMessage(ParameterSet* parameters, ChooserMemory* memory);
     StatePtr next() override;
   private:
     std::string decrypt(const std::string& message, const std::string& key);
@@ -202,7 +202,7 @@ namespace BellareMicaliOTProtocol {
 
   class ChooserDone : public ChooserState {
   public:
-    ChooserDone(ParameterSet& parameters, ChooserMemory& memory);
+    ChooserDone(ParameterSet* parameters, ChooserMemory* memory);
     StatePtr next() override;
   };
 }
