@@ -6,6 +6,7 @@
 #include "Circuit.hh"
 #include "MonitorableSystem.hh"
 #include "MessageHandler.hh"
+#include "BellareMicaliOTProtocol.hh"
 
 namespace LiuEtAlMonitoringProtocol {
   const unsigned SYSTEM_PORT = 5555;
@@ -46,7 +47,7 @@ namespace LiuEtAlMonitoringProtocol {
 
   class SystemMemory {
   public:
-    MonitorableSystem& system;
+    MonitorableSystem* system;
     std::vector<BigInt> driverLabels;
     std::vector<BigInt> inWireLabels;
     std::vector<GarbledGate> garbledGates;
@@ -56,16 +57,16 @@ namespace LiuEtAlMonitoringProtocol {
 
   class SystemState : public State {
   public:
-    SystemState(ParameterSet& parameters, SystemMemory& memory);
+    SystemState(ParameterSet* parameters, SystemMemory* memory);
     virtual StatePtr next() = 0;
   protected:
-    ParameterSet& parameters;
-    SystemMemory& memory;
+    ParameterSet* parameters;
+    SystemMemory* memory;
   };
 
   class MonitorMemory {
   public:
-    Circuit& circuit;
+    Circuit* circuit;
     std::vector<Driver*> shuffledCircuit;
     std::vector<BigInt> driverLabels;
     std::vector<BigInt> inWireKeys;
@@ -79,42 +80,42 @@ namespace LiuEtAlMonitoringProtocol {
 
   class MonitorState : public State {
   public:
-    MonitorState(ParameterSet& parameters, MonitorMemory& memory);
+    MonitorState(ParameterSet* parameters, MonitorMemory* memory);
     virtual StatePtr next() = 0;
   protected:
-    ParameterSet& parameters;
-    MonitorMemory& memory;
+    ParameterSet* parameters;
+    MonitorMemory* memory;
   };
 
   class SystemInterface {
   public:
     SystemInterface(
-      ParameterSet parameters,
-      SystemMemory memory,
-      MessageHandler& messageHandler);
+      ParameterSet* parameters,
+      SystemMemory* memory,
+      MessageHandler* messageHandler);
     void sync();
     void next();
     void run();
   private:
-    ParameterSet parameters;
-    MessageHandler& messageHandler;
-    SystemMemory memory;
+    ParameterSet* parameters;
+    MessageHandler* messageHandler;
+    SystemMemory* memory;
     StatePtr state;
   };
 
   class MonitorInterface {
   public:
     MonitorInterface(
-      ParameterSet parameters,
-      MonitorMemory memory,
-      MessageHandler& messageHandler);
+      ParameterSet* parameters,
+      MonitorMemory* memory,
+      MessageHandler* messageHandler);
     void sync();
     void next();
     void run();
   private:
-    ParameterSet parameters;
-    MessageHandler& messageHandler;
-    MonitorMemory memory;
+    ParameterSet* parameters;
+    MessageHandler* messageHandler;
+    MonitorMemory* memory;
     StatePtr state;
   };
 
@@ -123,13 +124,13 @@ namespace LiuEtAlMonitoringProtocol {
 
   class InitSystem : public SystemState {
   public:
-    InitSystem(ParameterSet& parameters, SystemMemory& memory);
+    InitSystem(ParameterSet* parameters, SystemMemory* memory);
     StatePtr next() override;
   };
 
   class RecvLabels : public SystemState {
   public:
-    RecvLabels(ParameterSet& parameters, SystemMemory& memory);
+    RecvLabels(ParameterSet* parameters, SystemMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   private:
@@ -139,18 +140,20 @@ namespace LiuEtAlMonitoringProtocol {
 
   class GenerateGarbledGates : public SystemState {
   public:
-    GenerateGarbledGates(ParameterSet& parameters, SystemMemory& memory);
+    GenerateGarbledGates(ParameterSet* parameters, SystemMemory* memory);
     StatePtr next() override;
   private:
     void generateGarblingExponents();
-    std::array<BigInt, 2> expLabel(BigInt label);
+    std::array<BigInt, 2> expLabel(
+      BigInt label,
+      std::array<BigInt, 2> exponents);
     std::string padLabel(BigInt label);
     void garble();
   };
 
   class SendGarbledGates : public SystemState {
   public:
-    SendGarbledGates(ParameterSet& parameters, SystemMemory& memory);
+    SendGarbledGates(ParameterSet* parameters, SystemMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -158,7 +161,7 @@ namespace LiuEtAlMonitoringProtocol {
 
   class SendSystemInputLabels : public SystemState {
   public:
-    SendSystemInputLabels(ParameterSet& parameters, SystemMemory& memory);
+    SendSystemInputLabels(ParameterSet* parameters, SystemMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -169,7 +172,7 @@ namespace LiuEtAlMonitoringProtocol {
 
   class SendFlagBitLabels : public SystemState {
   public:
-    SendFlagBitLabels(ParameterSet& parameters, SystemMemory& memory);
+    SendFlagBitLabels(ParameterSet* parameters, SystemMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -184,44 +187,44 @@ namespace LiuEtAlMonitoringProtocol {
 
   class RecvFlagBit : public SystemState {
   public:
-    RecvFlagBit(ParameterSet& parameters, SystemMemory& memory);
+    RecvFlagBit(ParameterSet* parameters, SystemMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
 
   class UpdateSystem : public SystemState {
   public:
-    UpdateSystem(ParameterSet& parameters, SystemMemory& memory);
+    UpdateSystem(ParameterSet* parameters, SystemMemory* memory);
     StatePtr next() override;
   };
 
   class SystemDone : public SystemState {
   public:
-    SystemDone(ParameterSet& parameters, SystemMemory& memory);
+    SystemDone(ParameterSet* parameters, SystemMemory* memory);
     StatePtr next() override;
   };
 
   class InitMonitor : public MonitorState {
   public:
-    InitMonitor(ParameterSet& parameters, MonitorMemory& memory);
+    InitMonitor(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   };
 
   class GenerateDriverLabels : public MonitorState {
   public:
-    GenerateDriverLabels(ParameterSet& parameters, MonitorMemory& memory);
+    GenerateDriverLabels(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   };
 
   class GenerateInWireKeys : public MonitorState {
   public:
-    GenerateInWireKeys(ParameterSet& parameters, MonitorMemory& memory);
+    GenerateInWireKeys(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   };
 
   class SendLabels : public MonitorState {
   public:
-    SendLabels(ParameterSet& parameters, MonitorMemory& memory);
+    SendLabels(ParameterSet* parameters, MonitorMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -232,21 +235,21 @@ namespace LiuEtAlMonitoringProtocol {
 
   class RecvGarbledGates : public MonitorState {
   public:
-    RecvGarbledGates(ParameterSet& parameters, MonitorMemory& memory);
+    RecvGarbledGates(ParameterSet* parameters, MonitorMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
 
   class RecvSystemInputLabels : public MonitorState {
   public:
-    RecvSystemInputLabels(ParameterSet& parameters, MonitorMemory& memory);
+    RecvSystemInputLabels(ParameterSet* parameters, MonitorMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
 
   class RecvFlagBitLabels : public MonitorState {
   public:
-    RecvFlagBitLabels(ParameterSet& parameters, MonitorMemory& memory);
+    RecvFlagBitLabels(ParameterSet* parameters, MonitorMemory* memory);
     bool isRecv() override;
     StatePtr next() override;
   };
@@ -258,7 +261,7 @@ namespace LiuEtAlMonitoringProtocol {
 
   class EvaluateCircuit : public MonitorState {
   public:
-    EvaluateCircuit(ParameterSet& parameters, MonitorMemory& memory);
+    EvaluateCircuit(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   private:
     std::string padLabel(BigInt label);
@@ -266,9 +269,9 @@ namespace LiuEtAlMonitoringProtocol {
     void evaluateDriverLabels();
   };
 
-  class SendOutputBit : public MonitorState {
+  class SendFlagBit : public MonitorState {
   public:
-    SendOutputBit(ParameterSet& parameters, MonitorMemory& memory);
+    SendFlagBit(ParameterSet* parameters, MonitorMemory* memory);
     bool isSend() override;
     std::string message() override;
     StatePtr next() override;
@@ -284,7 +287,7 @@ namespace LiuEtAlMonitoringProtocol {
 
   class MonitorDone : public MonitorState {
   public:
-    MonitorDone(ParameterSet& parameters, MonitorMemory& memory);
+    MonitorDone(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   };
 };
