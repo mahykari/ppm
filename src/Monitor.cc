@@ -22,29 +22,35 @@ int main (int argc, char *argv[]) {
   unsigned securityParameter = 80;
   auto primeModulus = BigInt(SAFE_PRIMES[securityParameter]);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
-  printf("D: first prime moduli: ");
-  for (int i = 0; i < 10; i++)
-    printf("%s ", BigInt(SAFE_PRIMES[i]).get_str(10).c_str());
-  printf("\n");
+
   auto parameters = L::ParameterSet {
-    .gateCount = 3,
-    .monitorStateLength = 0,
+    // .gateCount = 3,
+    // .monitorStateLength = 0,
+    .gateCount = 6,
+    .monitorStateLength = 1,
     .systemStateLength = 4,
     .group = QuadraticResidueGroup(primeModulus),
     .garbler = Sha512YaoGarbler(),
     .securityParameter = securityParameter
   };
 
-  auto circuit = Circuit(4, 1);
-  circuit.addGate(0, 1);
-  circuit.addGate(2, 3);
-  circuit.addGate(4, 5);
+  // auto circuit = Circuit(4, 1);
+  // circuit.addGate(0, 1);
+  // circuit.addGate(2, 3);
+  // circuit.addGate(4, 5);
+  auto circuit = Circuit(5, 2);
+  circuit.addGate(1, 2); //  5: ~ (x0 x1)
+  circuit.addGate(3, 4); //  6: ~ (x2 x3)
+  circuit.addGate(5, 6); //  7: x0 x1 + x2 x3
+  circuit.addGate(0, 7); //  8: ~ (m (x0 x1 + x2 x3))
+  circuit.addGate(0, 0); //  9: ~ m
+  circuit.addGate(8, 8); // 10: m (x0 x1 + x2 x3)
   auto monitorMemory = L::MonitorMemory {
-    .circuit = circuit
+    .circuit = &circuit
   };
 
   auto interface = L::MonitorInterface(
-    parameters, monitorMemory, messageHandler);
+    &parameters, &monitorMemory, &messageHandler);
 
   interface.run();
 
@@ -58,7 +64,7 @@ int main (int argc, char *argv[]) {
 
   auto chooserMemory = B::ChooserMemory { .sigma = 1 };
   auto interface1 = B::ChooserInterface(
-    parameters1, chooserMemory, messageHandler);
+    &parameters1, &chooserMemory, &messageHandler);
   interface1.run();
 
   exit(EXIT_SUCCESS);

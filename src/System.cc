@@ -35,8 +35,10 @@ int main() {
   auto primeModulus = BigInt(SAFE_PRIMES[securityParameter]);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
   auto parameters = L::ParameterSet {
-    .gateCount = 3,
-    .monitorStateLength = 0,
+    // .gateCount = 3,
+    // .monitorStateLength = 0,
+    .gateCount = 6,
+    .monitorStateLength = 1,
     .systemStateLength = 4,
     .group = QuadraticResidueGroup(primeModulus),
     .garbler = Sha512YaoGarbler(),
@@ -45,12 +47,12 @@ int main() {
 
   auto system = SweepSystem();
   auto systemMemory = L::SystemMemory {
-    .system = system
+    .system = &system
   };
 
   auto interface = L::SystemInterface(
-    parameters, systemMemory, messageHandler);
-
+    &parameters, &systemMemory, &messageHandler);
+  printf("D: running system interface\n");
   interface.run();
 
   std::cout << std::string(80, '=') << '\n';
@@ -66,7 +68,7 @@ int main() {
   };
 
   auto interface1 = B::SenderInterface(
-    parameters1, senderMemory, messageHandler);
+    &parameters1, &senderMemory, &messageHandler);
 
   interface1.run();
 
