@@ -52,6 +52,8 @@ namespace LiuEtAlMonitoringProtocol {
     std::vector<BigInt> inWireLabels;
     std::vector<GarbledGate> garbledGates;
     std::array<BigInt, 2> garblingExponents;
+    std::array<BigInt, 2> nextRoundGarblingExponents;
+    bool isFirstRound = true;
     std::string receivedMessage;
   };
 
@@ -73,8 +75,7 @@ namespace LiuEtAlMonitoringProtocol {
     std::vector<GarbledGate> garbledGates;
     std::vector<BigInt> evaluatedDriverLabels;
     std::array<BigInt, 2> flagBitLabels;
-    bool isFirstRound;
-    bool isDone;
+    bool isFirstRound = true;
     std::string receivedMessage;
   };
 
@@ -180,10 +181,24 @@ namespace LiuEtAlMonitoringProtocol {
     std::array<BigInt, 2> flagBitLabels();
   };
 
-  // class ObliviousTransferSystem : public SystemState {
-  // public:
-  //   StatePtr next() override;
-  // };
+  namespace B = BellareMicaliOTProtocol;
+
+  class SystemObliviousTransfer : public SystemState {
+  public:
+    SystemObliviousTransfer(ParameterSet* parameters, SystemMemory* memory);
+    SystemObliviousTransfer(const SystemObliviousTransfer& other) = delete;
+    SystemObliviousTransfer(SystemObliviousTransfer&& other) = default;
+    bool isSend() override;
+    bool isRecv() override;
+    std::string message() override;
+    StatePtr next() override;
+  private:
+    std::unique_ptr<B::ParameterSet> OTParameters;
+    std::unique_ptr<B::SenderMemory> senderMemory;
+    B::StatePtr state;
+    void setOTMessages();
+    unsigned counter;
+  };
 
   class RecvFlagBit : public SystemState {
   public:
@@ -254,10 +269,22 @@ namespace LiuEtAlMonitoringProtocol {
     StatePtr next() override;
   };
 
-  // class ObliviousTransferMonitor : public MonitorState {
-  // public:
-  //   StatePtr next() override;
-  // };
+  class MonitorObliviousTransfer : public MonitorState {
+  public:
+    MonitorObliviousTransfer(ParameterSet* parameters, MonitorMemory* memory);
+    MonitorObliviousTransfer(const MonitorObliviousTransfer& other) = delete;
+    MonitorObliviousTransfer(MonitorObliviousTransfer&& other) = default;
+    bool isSend() override;
+    bool isRecv() override;
+    std::string message() override;
+    StatePtr next() override;
+  private:
+    std::unique_ptr<B::ParameterSet> OTParameters;
+    std::unique_ptr<B::ChooserMemory> chooserMemory;
+    B::StatePtr state;
+    unsigned counter;
+    void setSigma();
+  };
 
   class EvaluateCircuit : public MonitorState {
   public:
@@ -281,7 +308,13 @@ namespace LiuEtAlMonitoringProtocol {
 
   class FaultObserved : public MonitorState {
   public:
-    FaultObserved(ParameterSet& parameters, MonitorMemory& memory);
+    FaultObserved(ParameterSet* parameters, MonitorMemory* memory);
+    StatePtr next() override;
+  };
+
+  class CopyMonitorStateLabels : public MonitorState {
+  public:
+    CopyMonitorStateLabels(ParameterSet* parameters, MonitorMemory* memory);
     StatePtr next() override;
   };
 
