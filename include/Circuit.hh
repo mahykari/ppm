@@ -30,7 +30,7 @@ public:
 class Circuit {
 public:
   Circuit(unsigned inputLength, unsigned outputLength);
-  void addGate(unsigned inputLeft, unsigned inputRight);
+  unsigned addGate(unsigned inputLeft, unsigned inputRight);
   std::vector<Driver*> shuffle();
   std::vector<Driver*> get();
   // Method size() returns the number of *drivers* in the circuit,

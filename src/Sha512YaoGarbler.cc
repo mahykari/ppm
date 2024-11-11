@@ -8,7 +8,7 @@
 // when represented in hexadecimal.
 const size_t SHA512_HEX_SIZE = EVP_MAX_MD_SIZE * 2;
 // The last character is an XOR checksum.
-const size_t CHECK_HEX_SIZE = 4;
+const size_t CHECK_HEX_SIZE = 16;
 
 bool Sha512YaoGarbler::checkLabels(std::vector<Label> labels) {
   bool valid = true;
@@ -48,10 +48,10 @@ Label Sha512YaoGarbler::decImpl(
 
   auto check = hashSha512(label.substr(0, size - CHECK_HEX_SIZE));
   check = check.substr(0, CHECK_HEX_SIZE);
-  printf(
-    "D: Sha512YaoGarbler::decImpl: label %s, check: %s\n",
-    label.c_str(),
-    check.c_str());
+  // printf(
+  //   "D: Sha512YaoGarbler::decImpl: label %s, check: %s\n",
+  //   label.c_str(),
+  //   check.c_str());
   if (label.substr(size - CHECK_HEX_SIZE) != check)
     throw InvalidCipher();
   return label.substr(0, size - CHECK_HEX_SIZE);
