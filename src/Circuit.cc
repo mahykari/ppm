@@ -21,14 +21,14 @@ Circuit::Circuit(unsigned inputLength, unsigned outputLength)
     this->drivers.push_back(std::make_unique<Driver>(i));
 }
 
-void Circuit::addGate(unsigned inputLeft, unsigned inputRight)
+unsigned Circuit::addGate(unsigned inputLeft, unsigned inputRight)
 {
   DriverPtr gate = std::make_unique<Gate>(
     this->counter, inputLeft, inputRight);
   this->drivers[inputLeft]->drive(gate->id);
   this->drivers[inputRight]->drive(gate->id);
-  this->counter++;
   this->drivers.push_back(std::move(gate));
+  return this->counter++;
 }
 
 std::vector<Driver*> Circuit::shuffle() {
