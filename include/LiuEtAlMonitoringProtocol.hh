@@ -1,3 +1,4 @@
+#include <chrono>
 #include <string>
 #include <vector>
 #include "BigInt.hh"
@@ -55,6 +56,7 @@ namespace LiuEtAlMonitoringProtocol {
     std::array<BigInt, 2> nextRoundGarblingExponents;
     bool isFirstRound = true;
     std::string receivedMessage;
+    std::chrono::system_clock::time_point lastTimePoint;
   };
 
   class SystemState : public State {
@@ -77,6 +79,7 @@ namespace LiuEtAlMonitoringProtocol {
     std::array<BigInt, 2> flagBitLabels;
     bool isFirstRound = true;
     std::string receivedMessage;
+    std::chrono::system_clock::time_point lastTimePoint;
   };
 
   class MonitorState : public State {

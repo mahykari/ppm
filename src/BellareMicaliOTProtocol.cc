@@ -94,8 +94,8 @@ P::GenerateConstant::GenerateConstant(
 P::StatePtr P::GenerateConstant::next() {
   printf("I: GenerateConstant::next\n");
   this->memory->constant = this->parameters->group.randomGenerator();
-  printf("D:   generated constant: %s\n",
-    toString(this->memory->constant, P::MSG_NUM_BASE).c_str());
+  // printf("D:   generated constant: %s\n",
+  //   toString(this->memory->constant, P::MSG_NUM_BASE).c_str());
   return std::make_unique<SendConstant> (
     this->parameters, this->memory);
 }
@@ -321,7 +321,7 @@ P::StatePtr P::DecryptChosenMessage::next() {
   auto hashedEncKey = hashSha512(toString(encryptionKey, P::MSG_NUM_BASE));
   auto& encryptedMessage = this->memory->encryptedMessage;
   this->memory->chosenMessage = this->decrypt(encryptedMessage, hashedEncKey);
-  printf("D: decrypted message %s\n", this->memory->chosenMessage.c_str());
+  // printf("D: decrypted message %s\n", this->memory->chosenMessage.c_str());
   return std::make_unique<ChooserDone> (this->parameters, this->memory);
 }
 

@@ -37,7 +37,7 @@ P::SystemInterface::SystemInterface(
 }
 
 void P::SystemInterface::sync() {
-  printf("D: SystemInterface::sync\n");
+  // printf("D: SystemInterface::sync\n");
   if (this->state->isSend())
     this->messageHandler->send(this->state->message());
   else if (this->state->isRecv())
@@ -45,7 +45,7 @@ void P::SystemInterface::sync() {
 }
 
 void P::SystemInterface::next() {
-  printf("D: SystemInterface::next\n");
+  // printf("D: SystemInterface::next\n");
   this->sync();
   this->state = this->state->next();
 }
@@ -70,7 +70,7 @@ P::MonitorInterface::MonitorInterface(
 }
 
 void P::MonitorInterface::sync() {
-  printf("D: MonitorInterface::sync\n");
+  // printf("D: MonitorInterface::sync\n");
   if (this->state->isSend())
     this->messageHandler->send(this->state->message());
   else if (this->state->isRecv())
@@ -78,7 +78,7 @@ void P::MonitorInterface::sync() {
 }
 
 void P::MonitorInterface::next() {
-  printf("D: MonitorInterface::next\n");
+  // printf("D: MonitorInterface::next\n");
   this->sync();
   this->state = this->state->next();
 }
@@ -89,7 +89,9 @@ void P::MonitorInterface::run() {
 }
 
 P::InitSystem::InitSystem(ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
+  : SystemState(parameters, memory) {
+    this->memory->lastTimePoint = std::chrono::system_clock::now();
+}
 
 P::StatePtr P::InitSystem::next() {
   printf("I: InitSystem::next\n");
@@ -128,10 +130,15 @@ bool P::RecvLabels::isRecv() {
 
 P::StatePtr P::RecvLabels::next() {
   printf("I: RecvLabels::next\n");
+  auto timeBegin = std::chrono::system_clock::now();
   assert (not this->memory->receivedMessage.empty());
   this->parseLabels();
   this->generateFlagBitLabel();
-  printf("D:   labels parsed, flag bit generated\n");
+  // printf("D:   labels parsed, flag bit generated\n");
+  auto timeEnd = std::chrono::system_clock::now();
+  auto duration =
+    std::chrono::duration<float, std::milli>(timeEnd - timeBegin);
+  printf("D:   labels parsed, exponents generated in %f ms\n", duration.count());
   return std::make_unique<P::GenerateGarbledGates>(
     this->parameters, this->memory);
 }
@@ -198,16 +205,16 @@ void P::GenerateGarbledGates::garble() {
       ? this->memory->garblingExponents
       : this->memory->nextRoundGarblingExponents;
     auto outLabels = this->expLabel(driverLabels[offset + i], outExponents);
-    printf("D:   shuffled gate %d\n", i);
-    printf("D:     left labels:  { %s, %s }\n",
-      this->padLabel(leftLabels[0]).c_str(),
-      this->padLabel(leftLabels[1]).c_str());
-    printf("D:     right labels: { %s, %s }\n",
-      this->padLabel(rightLabels[0]).c_str(),
-      this->padLabel(rightLabels[1]).c_str());
-    printf("D:     out labels:   { %s, %s }\n",
-      this->padLabel(outLabels[0]).c_str(),
-      this->padLabel(outLabels[1]).c_str());
+    // printf("D:   shuffled gate %d\n", i);
+    // printf("D:     left labels:  { %s, %s }\n",
+    //   this->padLabel(leftLabels[0]).c_str(),
+    //   this->padLabel(leftLabels[1]).c_str());
+    // printf("D:     right labels: { %s, %s }\n",
+    //   this->padLabel(rightLabels[0]).c_str(),
+    //   this->padLabel(rightLabels[1]).c_str());
+    // printf("D:     out labels:   { %s, %s }\n",
+    //   this->padLabel(outLabels[0]).c_str(),
+    //   this->padLabel(outLabels[1]).c_str());
     garbledGates[i] = garbler.enc(
       { this->padLabel(leftLabels[0]),
         this->padLabel(leftLabels[1]) },
@@ -260,10 +267,14 @@ bool P::SendSystemInputLabels::isSend() {
 std::vector<BigInt> P::SendSystemInputLabels::systemInputLabels() {
   auto& systemData = this->memory->system->data();
 
-  printf("D:   system data: { ");
-  for (unsigned i = 0; i < systemData.size(); i++)
-    printf("%d ", systemData[i]);
-  printf("}\n");
+  // printf("D:   system data: { ");
+  // for (unsigned i = 0; i < systemData.size(); i++)
+  //   printf("%d ", systemData[i]);
+  // std::string s(systemData.size(), '0');
+  // for (unsigned i = 0; i < systemData.size(); i++)
+  //   s[i] = systemData[i] + '0';
+  // printf("%s", BigInt(s, 2).get_str(10).c_str());
+  // printf(" }\n");
 
   std::vector<BigInt> labels;
   assert (systemData.size() == this->parameters->systemStateLength);
@@ -382,10 +393,10 @@ P::StatePtr P::SystemObliviousTransfer::next() {
       (this->OTParameters.get(), this->senderMemory.get());
   } else {
     this->senderMemory->receivedMessage = this->memory->receivedMessage;
-    printf("D:   &senderMemory: %p\n", (void*) this->senderMemory.get());
+    // printf("D:   &senderMemory: %p\n", (void*) this->senderMemory.get());
     this->state = this->state->next();
-    printf("D:   generated constant: %s\n",
-      this->senderMemory->constant.get_str(16).c_str());
+    // printf("D:   generated constant: %s\n",
+    //   this->senderMemory->constant.get_str(16).c_str());
   }
   return std::make_unique<P::SystemObliviousTransfer> (std::move(*this));
 }
@@ -401,6 +412,12 @@ P::StatePtr P::RecvFlagBit::next() {
   printf("I: RecvFlagBit::next\n");
   auto& message = this->memory->receivedMessage;
   bool flagBit = std::stoi(message);
+  auto timeBegin = this->memory->lastTimePoint;
+  auto timeEnd = std::chrono::system_clock::now();
+  auto duration =
+    std::chrono::duration<float, std::milli>(timeEnd - timeBegin);
+  printf("D: ==== round duration: %f ms ====\n", duration.count());
+  this->memory->lastTimePoint = std::chrono::system_clock::now();
   if (flagBit)
     return std::make_unique<P::SystemDone>(this->parameters, this->memory);
   else
@@ -427,7 +444,9 @@ P::StatePtr P::SystemDone::next() {
 }
 
 P::InitMonitor::InitMonitor(ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
+  : MonitorState(parameters, memory) {
+    this->memory->lastTimePoint = std::chrono::system_clock::now();
+}
 
 P::StatePtr P::InitMonitor::next() {
   printf("I: InitMonitor::next\n");
@@ -440,6 +459,8 @@ P::GenerateDriverLabels::GenerateDriverLabels(
   : MonitorState(parameters, memory) {}
 
 P::StatePtr P::GenerateDriverLabels::next() {
+  printf("I: GenerateDriverLabels::next\n");
+  auto timeBegin = std::chrono::system_clock::now();
   auto& group = this->parameters->group;
   auto& driverLabels = this->memory->driverLabels;
   Circuit* circuit = this->memory->circuit;
@@ -451,6 +472,10 @@ P::StatePtr P::GenerateDriverLabels::next() {
   auto offset = driverCount - monitorStateLength - 1;
   for (unsigned i = 0; i < monitorStateLength; i++)
     driverLabels[offset + i] = driverLabels[i];
+  auto timeEnd = std::chrono::system_clock::now();
+  auto duration =
+    std::chrono::duration<float, std::milli>(timeEnd - timeBegin);
+  printf("D:   driver labels generated in %f ms\n", duration.count());
   return std::make_unique<P::GenerateInWireKeys>(
     this->parameters, this->memory);
 }
@@ -460,10 +485,16 @@ P::GenerateInWireKeys::GenerateInWireKeys(
   : MonitorState(parameters, memory) {}
 
 P::StatePtr P::GenerateInWireKeys::next() {
+  printf("I: GenerateInWireKeys::next\n");
+  auto timeBegin = std::chrono::system_clock::now();
   auto inWireCount = 2 * this->parameters->gateCount;
   this->memory->inWireKeys.resize(inWireCount);
   for (unsigned i = 0; i < inWireCount; i++)
     this->memory->inWireKeys[i] = this->parameters->group.randomExponent();
+  auto timeEnd = std::chrono::system_clock::now();
+  auto duration =
+    std::chrono::duration<float, std::milli>(timeEnd - timeBegin);
+  printf("D:   in-wire keys generated in %f ms\n", duration.count());
   return std::make_unique<P::SendLabels>(
     this->parameters, this->memory);
 }
@@ -480,9 +511,7 @@ std::vector<BigInt> P::SendLabels::generateInWireLabels() {
   unsigned gateCount = this->parameters->gateCount;
   inWireLabels.resize(2 * gateCount);
   auto drivers = this->memory->circuit->get();
-  auto offset =
-    this->parameters->monitorStateLength
-    + this->parameters->systemStateLength;
+  auto offset = this->parameters->inputLength();
   // For gate G, ingoing wires are labelled as follows:
   // Left: (Driver label of G.leftInput) ^ (Key of G.leftInput)
   // Right: Same, but for G.rightInput.
@@ -508,6 +537,7 @@ void P::SendLabels::shuffleCircuit() {
 
 std::string P::SendLabels::message() {
   auto inWireLabels = this->generateInWireLabels();
+  // printf("D:   in-wire labels generated\n");
   this->shuffleCircuit();
   std::stringstream ss;
   auto driverCount = this->memory->circuit->size();
@@ -567,7 +597,7 @@ P::StatePtr P::RecvSystemInputLabels::next() {
   std::vector <BigInt> systemInputLabels;
   std::tie(systemInputLabels, message) =
     readBigInts(message, P::MSG_NUM_BASE, this->parameters->systemStateLength);
-  printf("D:   read system input labels\n");
+  // printf("D:   read system input labels\n");
   auto& evaluatedDriverLabels = this->memory->evaluatedDriverLabels;
   auto offset = this->parameters->monitorStateLength;
   evaluatedDriverLabels.resize(this->memory->circuit->size());
@@ -636,7 +666,7 @@ P::StatePtr P::MonitorObliviousTransfer::next() {
   if (this->counter == this->parameters->monitorStateLength)
     return std::make_unique<P::EvaluateCircuit>
       (this->parameters, this->memory);
-  printf("D:   counter: %d\n", this->counter);
+  // printf("D:   counter: %d\n", this->counter);
   if (not this->state) {
     this->memory->evaluatedDriverLabels[this->counter] =
       BigInt(this->chooserMemory->chosenMessage, B::MSG_NUM_BASE);
@@ -682,14 +712,14 @@ void P::EvaluateCircuit::evaluateDriverLabels() {
   auto& inWireKeys = this->memory->inWireKeys;
   auto offset = this->parameters->inputLength();
   auto unshuffled = this->getUnshuffling();
-  printf("D:   shuffled IDs:   [ ");
-  for (auto driver : this->memory->shuffledCircuit)
-    printf("%d ", driver->id);
-  printf("]\n");
-  printf("D:   unshuffled IDs: [ ");
-  for (auto id : unshuffled)
-    printf("%d ", id);
-  printf("]\n");
+  // printf("D:   shuffled IDs:   [ ");
+  // for (auto driver : this->memory->shuffledCircuit)
+  //   printf("%d ", driver->id);
+  // printf("]\n");
+  // printf("D:   unshuffled IDs: [ ");
+  // for (auto id : unshuffled)
+  //   printf("%d ", id);
+  // printf("]\n");
   for (unsigned i = 0; i < this->parameters->gateCount; i++) {
     auto gate = static_cast<Gate*>(drivers[offset + i]);
     auto leftLabel = this->parameters->group.exp(
@@ -698,15 +728,15 @@ void P::EvaluateCircuit::evaluateDriverLabels() {
     auto rightLabel = this->parameters->group.exp(
       evaluatedDriverLabels[gate->inputRight],
       inWireKeys[2 * i + 1]);
-    printf("D:   evaluating gate ID %d\n", gate->id);
-    printf("D:   unshuffled index:  %d\n", unshuffled[gate->id]);
-    printf("D:     left label:   %s\n", this->padLabel(leftLabel).c_str());
-    printf("D:     right label:  %s\n", this->padLabel(rightLabel).c_str());
+    // printf("D:   evaluating gate ID %d\n", gate->id);
+    // printf("D:   unshuffled index:  %d\n", unshuffled[gate->id]);
+    // printf("D:     left label:   %s\n", this->padLabel(leftLabel).c_str());
+    // printf("D:     right label:  %s\n", this->padLabel(rightLabel).c_str());
     auto outLabel = this->parameters->garbler.dec(
       this->padLabel(leftLabel),
       this->padLabel(rightLabel),
       garbledGates[unshuffled[gate->id] - offset]);
-    printf("D:     output label: %s\n", outLabel.c_str());
+    // printf("D:     output label: %s\n", outLabel.c_str());
     evaluatedDriverLabels[gate->id] = BigInt(outLabel, P::MSG_NUM_BASE);
   }
 }
@@ -738,6 +768,12 @@ std::string P::SendFlagBit::message() {
 
 P::StatePtr P::SendFlagBit::next() {
   printf("I: SendOutputBit::next\n");
+  auto timeBegin = this->memory->lastTimePoint;
+  auto timeEnd = std::chrono::system_clock::now();
+  auto duration =
+    std::chrono::duration<float, std::milli>(timeEnd - timeBegin);
+  printf("I: ==== round duration: %f ms ====\n", duration.count());
+  this->memory->lastTimePoint = std::chrono::system_clock::now();
   if (this->getFlagBit())
     return std::make_unique<P::FaultObserved> (
       this->parameters, this->memory);
@@ -765,7 +801,7 @@ P::StatePtr P::CopyMonitorStateLabels::next() {
   auto monitorStateLength = this->parameters->monitorStateLength;
   auto offset =
     this->parameters->systemStateLength + this->parameters->gateCount - 1;
-  printf("D: offset = %d, # eval. labels = %lu\n", offset, evaluatedDriverLabels.size());
+  // printf("D: offset = %d, # eval. labels = %lu\n", offset, evaluatedDriverLabels.size());
   for (unsigned i = 0; i < monitorStateLength; i++)
     evaluatedDriverLabels[i] = evaluatedDriverLabels[offset + i];
   return std::make_unique<P::RecvGarbledGates> (this->parameters, this->memory);
