@@ -1,7 +1,6 @@
 #ifndef BELLARE_MICALI_OT_PROTOCOL_HH
 #define BELLARE_MICALI_OT_PROTOCOL_HH
 
-#include "Protocol.hh"
 #include "QuadraticResidueGroup.hh"
 #include "MessageHandler.hh"
 
