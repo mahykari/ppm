@@ -1,8 +1,8 @@
 #include <iostream>
 #include "MathUtils.hh"
 #include "MessageHandler.hh"
-#include "BellareMicaliOTProtocol.hh"
-#include "LiuEtAlMonitoringProtocol.hh"
+#include "BM.hh"
+#include "LWY.hh"
 #include "Circuit.hh"
 
 class SetUp {
@@ -12,8 +12,7 @@ public:
   }
 };
 
-namespace L = LiuEtAlMonitoringProtocol;
-namespace B = BellareMicaliOTProtocol;
+namespace L = LWY;
 
 int main (int argc, char *argv[]) {
   SetUp();

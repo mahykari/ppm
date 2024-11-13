@@ -1,11 +1,10 @@
 #include <iostream>
 #include <zmq.h>
-#include "LiuEtAlMonitoringProtocol.hh"
-#include "BellareMicaliOTProtocol.hh"
+#include "BM.hh"
+#include "LWY.hh"
 #include "MathUtils.hh"
 
-namespace L = LiuEtAlMonitoringProtocol;
-namespace B = BellareMicaliOTProtocol;
+namespace L = LWY;
 
 class SetUp {
 public:
