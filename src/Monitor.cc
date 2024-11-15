@@ -4,6 +4,7 @@
 #include "BM.hh"
 #include "LWY.hh"
 #include "Circuit.hh"
+#include "CommandLineInterface.hh"
 
 class SetUp {
 public:
@@ -15,22 +16,22 @@ public:
 namespace L = LWY;
 
 int main (int argc, char *argv[]) {
+  auto cli = CommandLineInterface();
+  cli.parse(argc, argv);
+
   SetUp();
   auto messageHandler = MessageHandler(L::SYSTEM_PORT, L::MONITOR_PORT);
 
-  unsigned securityParameter = 240;
-  auto primeModulus = BigInt(SAFE_PRIMES[securityParameter]);
+  auto primeModulus = BigInt(SAFE_PRIMES[cli.securityParameter]);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
 
-  unsigned monitorStateLength = 1;
   // CAUTION: systemStateLength should be a perfect square.
-  unsigned systemStateLength = (1 << 10);
-  unsigned inputLength = monitorStateLength + systemStateLength;
-  unsigned outputLength = monitorStateLength + 1;
+  unsigned inputLength = cli.monitorStateLength + cli.systemStateLength;
+  unsigned outputLength = cli.monitorStateLength + 1;
   auto circuit = Circuit(inputLength, outputLength);
   std::vector<unsigned> gateIds;
-  for (unsigned i = 0; i < systemStateLength; i++)
-    gateIds.push_back(monitorStateLength + i);
+  for (unsigned i = 0; i < cli.systemStateLength; i++)
+    gateIds.push_back(cli.monitorStateLength + i);
   unsigned n = gateIds.size();
   // printf("D: n = %u\n", n);
   for (unsigned i = 0; i < n - 1; i++) {
@@ -54,11 +55,11 @@ int main (int argc, char *argv[]) {
 
   auto parameters = L::ParameterSet {
     .gateCount = circuit.size() - inputLength,
-    .monitorStateLength = monitorStateLength,
-    .systemStateLength = systemStateLength,
+    .monitorStateLength = cli.monitorStateLength,
+    .systemStateLength = cli.systemStateLength,
     .group = QuadraticResidueGroup(primeModulus),
     .garbler = Sha512YaoGarbler(),
-    .securityParameter = securityParameter
+    .securityParameter = cli.securityParameter
   };
 
   auto interface = L::MonitorInterface(
