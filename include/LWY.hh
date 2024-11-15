@@ -195,7 +195,7 @@ namespace LWY {
   private:
     std::unique_ptr<BM::ParameterSet> OTParameters;
     std::unique_ptr<BM::SenderMemory> senderMemory;
-    BM::StatePtr state;
+    StatePtr state;
     void setOTMessages();
     unsigned counter;
   };
@@ -281,7 +281,7 @@ namespace LWY {
   private:
     std::unique_ptr<BM::ParameterSet> OTParameters;
     std::unique_ptr<BM::ChooserMemory> chooserMemory;
-    BM::StatePtr state;
+    StatePtr state;
     unsigned counter;
     void setSigma();
   };
