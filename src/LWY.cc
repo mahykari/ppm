@@ -1,26 +1,13 @@
 #include <cassert>
 #include <sstream>
-#include "LiuEtAlMonitoringProtocol.hh"
+#include "LWY.hh"
 #include "Exceptions.hh"
 #include "StringUtils.hh"
 
-namespace P = LiuEtAlMonitoringProtocol;
-namespace B = BellareMicaliOTProtocol;
+namespace P = LWY;
 
 unsigned P::ParameterSet::inputLength() {
   return this->monitorStateLength + this->systemStateLength;
-}
-
-bool P::State::isSend() {
-  return false;
-}
-
-bool P::State::isRecv() {
-  return false;
-}
-
-std::string P::State::message() {
-  throw NonSendStateHasNoMessage();
 }
 
 P::SystemState::SystemState(ParameterSet* parameters, SystemMemory* memory)
@@ -93,13 +80,10 @@ P::InitSystem::InitSystem(ParameterSet* parameters, SystemMemory* memory)
     this->memory->lastTimePoint = std::chrono::system_clock::now();
 }
 
-P::StatePtr P::InitSystem::next() {
+StatePtr P::InitSystem::next() {
   printf("I: InitSystem::next\n");
   return std::make_unique<P::RecvLabels>(this->parameters, this->memory);
 }
-
-P::RecvLabels::RecvLabels(ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
 
 void P::RecvLabels::parseLabels() {
   auto driverCount =
@@ -128,7 +112,7 @@ bool P::RecvLabels::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvLabels::next() {
+StatePtr P::RecvLabels::next() {
   printf("I: RecvLabels::next\n");
   auto timeBegin = std::chrono::system_clock::now();
   assert (not this->memory->receivedMessage.empty());
@@ -142,10 +126,6 @@ P::StatePtr P::RecvLabels::next() {
   return std::make_unique<P::GenerateGarbledGates>(
     this->parameters, this->memory);
 }
-
-P::GenerateGarbledGates::GenerateGarbledGates(
-  ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
 
 void P::GenerateGarbledGates::generateGarblingExponents() {
   auto& exponents = this->memory->garblingExponents;
@@ -226,17 +206,13 @@ void P::GenerateGarbledGates::garble() {
   }
 }
 
-P::StatePtr P::GenerateGarbledGates::next() {
+StatePtr P::GenerateGarbledGates::next() {
   printf("I: GenerateGarbledGates::next\n");
   this->generateGarblingExponents();
   this->garble();
   memory->garbledGates.resize(this->parameters->gateCount);
   return std::make_unique<P::SendGarbledGates>(this->parameters, this->memory);
 }
-
-P::SendGarbledGates::SendGarbledGates(
-  ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
 
 bool P::SendGarbledGates::isSend() {
   return true;
@@ -250,15 +226,11 @@ std::string P::SendGarbledGates::message() {
   return ss.str();
 }
 
-P::StatePtr P::SendGarbledGates::next() {
+StatePtr P::SendGarbledGates::next() {
   printf("I: SendGarbledGates::next\n");
   return std::make_unique<P::SendSystemInputLabels>(
     this->parameters, this->memory);
 }
-
-P::SendSystemInputLabels::SendSystemInputLabels(
-  ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
 
 bool P::SendSystemInputLabels::isSend() {
   return true;
@@ -296,15 +268,11 @@ std::string P::SendSystemInputLabels::message() {
   return ss.str();
 }
 
-P::StatePtr P::SendSystemInputLabels::next() {
+StatePtr P::SendSystemInputLabels::next() {
   printf("I: SendSystemInputLabels::next\n");
   return std::make_unique<P::SendFlagBitLabels> (
     this->parameters, this->memory);
 }
-
-P::SendFlagBitLabels::SendFlagBitLabels(
-  ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
 
 bool P::SendFlagBitLabels::isSend() {
   return true;
@@ -329,7 +297,7 @@ std::string P::SendFlagBitLabels::message() {
     + toString(labels[1], P::MSG_NUM_BASE);
 }
 
-P::StatePtr P::SendFlagBitLabels::next() {
+StatePtr P::SendFlagBitLabels::next() {
   printf("I: SendFlagBitLabels::next\n");
   if (this->memory->isFirstRound) {
     this->memory->isFirstRound = false;
@@ -344,12 +312,12 @@ P::SystemObliviousTransfer::SystemObliviousTransfer(
   : SystemState(parameters, memory)
 {
   this->counter = 0;
-  this->OTParameters = std::make_unique<B::ParameterSet>(
-    B::ParameterSet { .group = this->parameters->group }
+  this->OTParameters = std::make_unique<BM::ParameterSet>(
+    BM::ParameterSet { .group = this->parameters->group }
   );
-  this->senderMemory = std::make_unique<B::SenderMemory>();
+  this->senderMemory = std::make_unique<BM::SenderMemory>();
   this->setOTMessages();
-  this->state = std::make_unique<B::InitSender>
+  this->state = std::make_unique<BM::InitSender>
     (this->OTParameters.get(), this->senderMemory.get());
 }
 
@@ -362,7 +330,7 @@ void P::SystemObliviousTransfer::setOTMessages() {
       group.exp(
         memory->driverLabels[this->counter],
         memory->garblingExponents[i]),
-      B::MSG_NUM_BASE);
+      BM::MSG_NUM_BASE);
 }
 
 bool P::SystemObliviousTransfer::isSend() {
@@ -381,7 +349,7 @@ std::string P::SystemObliviousTransfer::message() {
   return this->state->message();
 }
 
-P::StatePtr P::SystemObliviousTransfer::next() {
+StatePtr P::SystemObliviousTransfer::next() {
   printf("I: SystemObliviousTransfer::next\n");
   if (this->counter == this->parameters->monitorStateLength)
     return std::make_unique<P::RecvFlagBit>(this->parameters, this->memory);
@@ -389,7 +357,7 @@ P::StatePtr P::SystemObliviousTransfer::next() {
   if (not this->state) {
     this->counter++;
     this->setOTMessages();
-    this->state = std::make_unique<B::InitSender>
+    this->state = std::make_unique<BM::InitSender>
       (this->OTParameters.get(), this->senderMemory.get());
   } else {
     this->senderMemory->receivedMessage = this->memory->receivedMessage;
@@ -401,14 +369,11 @@ P::StatePtr P::SystemObliviousTransfer::next() {
   return std::make_unique<P::SystemObliviousTransfer> (std::move(*this));
 }
 
-P::RecvFlagBit::RecvFlagBit(ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
-
 bool P::RecvFlagBit::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvFlagBit::next() {
+StatePtr P::RecvFlagBit::next() {
   printf("I: RecvFlagBit::next\n");
   auto& message = this->memory->receivedMessage;
   bool flagBit = std::stoi(message);
@@ -425,20 +390,14 @@ P::StatePtr P::RecvFlagBit::next() {
       this->parameters, this->memory);
 }
 
-P::UpdateSystem::UpdateSystem(ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
-
-P::StatePtr P::UpdateSystem::next() {
+StatePtr P::UpdateSystem::next() {
   printf("I: UpdateSystem::next\n");
   this->memory->system->next();
   return std::make_unique<P::GenerateGarbledGates>(
     this->parameters, this->memory);
 }
 
-P::SystemDone::SystemDone(ParameterSet* parameters, SystemMemory* memory)
-  : SystemState(parameters, memory) {}
-
-P::StatePtr P::SystemDone::next() {
+StatePtr P::SystemDone::next() {
   printf("I: SystemDone::next\n");
   return nullptr;
 }
@@ -448,17 +407,13 @@ P::InitMonitor::InitMonitor(ParameterSet* parameters, MonitorMemory* memory)
     this->memory->lastTimePoint = std::chrono::system_clock::now();
 }
 
-P::StatePtr P::InitMonitor::next() {
+StatePtr P::InitMonitor::next() {
   printf("I: InitMonitor::next\n");
   return std::make_unique<P::GenerateDriverLabels>(
     this->parameters, this->memory);
 }
 
-P::GenerateDriverLabels::GenerateDriverLabels(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
-P::StatePtr P::GenerateDriverLabels::next() {
+StatePtr P::GenerateDriverLabels::next() {
   printf("I: GenerateDriverLabels::next\n");
   auto timeBegin = std::chrono::system_clock::now();
   auto& group = this->parameters->group;
@@ -480,11 +435,7 @@ P::StatePtr P::GenerateDriverLabels::next() {
     this->parameters, this->memory);
 }
 
-P::GenerateInWireKeys::GenerateInWireKeys(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
-P::StatePtr P::GenerateInWireKeys::next() {
+StatePtr P::GenerateInWireKeys::next() {
   printf("I: GenerateInWireKeys::next\n");
   auto timeBegin = std::chrono::system_clock::now();
   auto inWireCount = 2 * this->parameters->gateCount;
@@ -498,9 +449,6 @@ P::StatePtr P::GenerateInWireKeys::next() {
   return std::make_unique<P::SendLabels>(
     this->parameters, this->memory);
 }
-
-P::SendLabels::SendLabels(ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
 
 bool P::SendLabels::isSend() {
   return true;
@@ -560,20 +508,16 @@ std::string P::SendLabels::message() {
   return ss.str();
 }
 
-P::StatePtr P::SendLabels::next() {
+StatePtr P::SendLabels::next() {
   printf("I: SendLabels::next\n");
   return std::make_unique<P::RecvGarbledGates>(this->parameters, this->memory);
 }
-
-P::RecvGarbledGates::RecvGarbledGates(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
 
 bool P::RecvGarbledGates::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvGarbledGates::next() {
+StatePtr P::RecvGarbledGates::next() {
   printf("I: RecvGarbledGates::next\n");
   auto message = this->memory->receivedMessage;
   auto gateCount = this->parameters->gateCount;
@@ -583,15 +527,11 @@ P::StatePtr P::RecvGarbledGates::next() {
     this->parameters, this->memory);
 }
 
-P::RecvSystemInputLabels::RecvSystemInputLabels(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
 bool P::RecvSystemInputLabels::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvSystemInputLabels::next() {
+StatePtr P::RecvSystemInputLabels::next() {
   printf("I: RecvSystemInputLabels::next\n");
   auto message = this->memory->receivedMessage;
   std::vector <BigInt> systemInputLabels;
@@ -607,15 +547,11 @@ P::StatePtr P::RecvSystemInputLabels::next() {
   return std::make_unique<P::RecvFlagBitLabels>(this->parameters, this->memory);
 }
 
-P::RecvFlagBitLabels::RecvFlagBitLabels(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
 bool P::RecvFlagBitLabels::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvFlagBitLabels::next() {
+StatePtr P::RecvFlagBitLabels::next() {
   printf("I: RecvFlagBitLabels::next\n");
   auto message = this->memory->receivedMessage;
   std::vector<BigInt> flagBitLabels;
@@ -634,10 +570,10 @@ P::MonitorObliviousTransfer::MonitorObliviousTransfer(
   ParameterSet* parameters, MonitorMemory* memory)
   : MonitorState(parameters, memory),
     counter(0) {
-  this->OTParameters = std::make_unique<B::ParameterSet>
-    (B::ParameterSet { .group = parameters->group });
-  this->chooserMemory = std::make_unique<B::ChooserMemory>();
-  this->state = std::make_unique<B::InitChooser>
+  this->OTParameters = std::make_unique<BM::ParameterSet>
+    (BM::ParameterSet { .group = parameters->group });
+  this->chooserMemory = std::make_unique<BM::ChooserMemory>();
+  this->state = std::make_unique<BM::InitChooser>
     (this->OTParameters.get(), this->chooserMemory.get());
 }
 
@@ -661,7 +597,7 @@ std::string P::MonitorObliviousTransfer::message() {
   return this->state->message();
 }
 
-P::StatePtr P::MonitorObliviousTransfer::next() {
+StatePtr P::MonitorObliviousTransfer::next() {
   printf("I: MonitorObliviousTransfer::next\n");
   if (this->counter == this->parameters->monitorStateLength)
     return std::make_unique<P::EvaluateCircuit>
@@ -669,10 +605,10 @@ P::StatePtr P::MonitorObliviousTransfer::next() {
   // printf("D:   counter: %d\n", this->counter);
   if (not this->state) {
     this->memory->evaluatedDriverLabels[this->counter] =
-      BigInt(this->chooserMemory->chosenMessage, B::MSG_NUM_BASE);
+      BigInt(this->chooserMemory->chosenMessage, BM::MSG_NUM_BASE);
     this->counter++;
     this->setSigma();
-    this->state = std::make_unique<B::InitChooser>
+    this->state = std::make_unique<BM::InitChooser>
       (this->OTParameters.get(), this->chooserMemory.get());
   } else {
     this->chooserMemory->receivedMessage = this->memory->receivedMessage;
@@ -680,10 +616,6 @@ P::StatePtr P::MonitorObliviousTransfer::next() {
   }
   return std::make_unique<P::MonitorObliviousTransfer> (std::move(*this));
 }
-
-P::EvaluateCircuit::EvaluateCircuit(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
 
 std::string P::EvaluateCircuit::padLabel(BigInt label) {
   auto labelStr = toString(label, P::MSG_NUM_BASE);
@@ -741,15 +673,11 @@ void P::EvaluateCircuit::evaluateDriverLabels() {
   }
 }
 
-P::StatePtr P::EvaluateCircuit::next() {
+StatePtr P::EvaluateCircuit::next() {
   printf("I: EvaluateCircuit::next\n");
   this->evaluateDriverLabels();
   return std::make_unique<P::SendFlagBit> (this->parameters, this->memory);
 }
-
-P::SendFlagBit::SendFlagBit(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
 
 bool P::SendFlagBit::isSend() {
   return true;
@@ -766,7 +694,7 @@ std::string P::SendFlagBit::message() {
   return std::to_string(this->getFlagBit());
 }
 
-P::StatePtr P::SendFlagBit::next() {
+StatePtr P::SendFlagBit::next() {
   printf("I: SendOutputBit::next\n");
   auto timeBegin = this->memory->lastTimePoint;
   auto timeEnd = std::chrono::system_clock::now();
@@ -782,20 +710,12 @@ P::StatePtr P::SendFlagBit::next() {
       this->parameters, this->memory);
 }
 
-P::FaultObserved::FaultObserved(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
-P::StatePtr P::FaultObserved::next() {
+StatePtr P::FaultObserved::next() {
   printf("I: FaultObserved::next\n");
   return std::make_unique<P::MonitorDone> (this->parameters, this->memory);
 }
 
-P::CopyMonitorStateLabels::CopyMonitorStateLabels(
-  ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
-P::StatePtr P::CopyMonitorStateLabels::next() {
+StatePtr P::CopyMonitorStateLabels::next() {
   printf("I: CopyMonitorStateLabels::next\n");
   auto& evaluatedDriverLabels = this->memory->evaluatedDriverLabels;
   auto monitorStateLength = this->parameters->monitorStateLength;
@@ -807,10 +727,7 @@ P::StatePtr P::CopyMonitorStateLabels::next() {
   return std::make_unique<P::RecvGarbledGates> (this->parameters, this->memory);
 }
 
-P::MonitorDone::MonitorDone(ParameterSet* parameters, MonitorMemory* memory)
-  : MonitorState(parameters, memory) {}
-
-P::StatePtr P::MonitorDone::next() {
+StatePtr P::MonitorDone::next() {
   printf("I: MonitorDone::next\n");
   return nullptr;
 }

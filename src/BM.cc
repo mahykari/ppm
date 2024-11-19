@@ -1,21 +1,9 @@
-#include "BellareMicaliOTProtocol.hh"
+#include "BM.hh"
 #include "Exceptions.hh"
 #include "MathUtils.hh"
 #include "StringUtils.hh"
 
-namespace P = BellareMicaliOTProtocol;
-
-bool P::State::isSend() {
-  return false;
-}
-
-bool P::State::isRecv() {
-  return false;
-}
-
-std::string P::State::message() {
-  throw NonSendStateHasNoMessage();
-}
+namespace P = BM;
 
 P::SenderInterface::SenderInterface(
   P::ParameterSet* parameters,
@@ -81,7 +69,7 @@ P::InitSender::InitSender(
   ParameterSet* parameters, SenderMemory* memory)
   : SenderState(parameters, memory) {}
 
-P::StatePtr P::InitSender::next() {
+StatePtr P::InitSender::next() {
   printf("I: InitSender::next\n");
   return std::make_unique<GenerateConstant> (
     this->parameters, this->memory);
@@ -91,7 +79,7 @@ P::GenerateConstant::GenerateConstant(
   ParameterSet* parameters, SenderMemory* memory)
   : SenderState(parameters, memory) {}
 
-P::StatePtr P::GenerateConstant::next() {
+StatePtr P::GenerateConstant::next() {
   printf("I: GenerateConstant::next\n");
   this->memory->constant = this->parameters->group.randomGenerator();
   // printf("D:   generated constant: %s\n",
@@ -112,7 +100,7 @@ std::string P::SendConstant::message() {
   return toString(this->memory->constant, P::MSG_NUM_BASE);
 }
 
-P::StatePtr P::SendConstant::next() {
+StatePtr P::SendConstant::next() {
   printf("I: SendConstant::next\n");
   return std::make_unique<RecvPublicKey> (
     this->parameters, this->memory);
@@ -135,7 +123,7 @@ void P::RecvPublicKey::evaluatePublicKeys(BigInt receivedKey) {
   );
 }
 
-P::StatePtr P::RecvPublicKey::next() {
+StatePtr P::RecvPublicKey::next() {
   printf("I: RecvPublicKey::next\n");
   auto& message = this->memory->receivedMessage;
   auto receivedKey = BigInt(message, P::MSG_NUM_BASE);
@@ -160,7 +148,7 @@ std::string P::EncryptMessages::encrypt(
   return encryptedMessage;
 }
 
-P::StatePtr P::EncryptMessages::next() {
+StatePtr P::EncryptMessages::next() {
   printf("I: EncryptMessages::next\n");
   auto group = this->parameters->group;
   for (size_t i = 0; i < 2; i++) {
@@ -194,7 +182,7 @@ std::string P::SendEncryptedMessages::message() {
     + this->memory->encryptedMessages[1];
 }
 
-P::StatePtr P::SendEncryptedMessages::next() {
+StatePtr P::SendEncryptedMessages::next() {
   printf("I: SendEncryptedMessages::next\n");
   return std::make_unique<SenderDone> (
     this->parameters, this->memory);
@@ -203,7 +191,7 @@ P::StatePtr P::SendEncryptedMessages::next() {
 P::SenderDone::SenderDone(ParameterSet* parameters, SenderMemory* memory)
   : SenderState(parameters, memory) {}
 
-P::StatePtr P::SenderDone::next() {
+StatePtr P::SenderDone::next() {
   printf("I: SenderDone::next\n");
   return nullptr;
 }
@@ -215,7 +203,7 @@ P::ChooserState::ChooserState(
 P::InitChooser::InitChooser(ParameterSet* parameters, ChooserMemory* memory)
   : ChooserState(parameters, memory) {}
 
-P::StatePtr P::InitChooser::next() {
+StatePtr P::InitChooser::next() {
   printf("I: InitChooser::next\n");
   return std::make_unique<RecvConstant> (
     this->parameters, this->memory);
@@ -228,7 +216,7 @@ bool P::RecvConstant::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvConstant::next() {
+StatePtr P::RecvConstant::next() {
   printf("I: RecvConstant::next\n");
   std::cout << "D: received message: " << this->memory->receivedMessage << '\n';
   auto& message = this->memory->receivedMessage;
@@ -241,7 +229,7 @@ P::GeneratePublicKey::GeneratePublicKey(
   ParameterSet* parameters, ChooserMemory* memory)
   : ChooserState(parameters, memory) {}
 
-P::StatePtr P::GeneratePublicKey::next() {
+StatePtr P::GeneratePublicKey::next() {
   printf("I: GeneratePublicKey::next\n");
   this->memory->key = this->parameters->group.randomExponent();
   return std::make_unique<SendPublicKey> (
@@ -268,7 +256,7 @@ std::string P::SendPublicKey::message() {
   return toString(pubKeys[0], P::MSG_NUM_BASE);
 }
 
-P::StatePtr P::SendPublicKey::next() {
+StatePtr P::SendPublicKey::next() {
   printf("I: SendPublicKey::next\n");
   return std::make_unique<RecvEncryptedMessages> (
     this->parameters, this->memory);
@@ -282,7 +270,7 @@ bool P::RecvEncryptedMessages::isRecv() {
   return true;
 }
 
-P::StatePtr P::RecvEncryptedMessages::next() {
+StatePtr P::RecvEncryptedMessages::next() {
   printf("I: RecvEncryptedMessages::next\n");
   auto& message = this->memory->receivedMessage;
   std::string parsedMessage[4];
@@ -312,7 +300,7 @@ std::string P::DecryptChosenMessage::decrypt(
   return decryptedMessage;
 }
 
-P::StatePtr P::DecryptChosenMessage::next() {
+StatePtr P::DecryptChosenMessage::next() {
   printf("I: DecryptChosenMessage::next\n");
   auto group = this->parameters->group;
   auto encryptionElement = BigInt(
@@ -328,7 +316,7 @@ P::StatePtr P::DecryptChosenMessage::next() {
 P::ChooserDone::ChooserDone(ParameterSet* parameters, ChooserMemory* memory)
   : ChooserState(parameters, memory) {}
 
-P::StatePtr P::ChooserDone::next() {
+StatePtr P::ChooserDone::next() {
   printf("I: ChooserDone::next\n");
   return nullptr;
 }

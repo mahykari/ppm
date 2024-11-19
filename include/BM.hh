@@ -1,9 +1,9 @@
 #ifndef BELLARE_MICALI_OT_PROTOCOL_HH
 #define BELLARE_MICALI_OT_PROTOCOL_HH
 
-#include "Protocol.hh"
 #include "QuadraticResidueGroup.hh"
 #include "MessageHandler.hh"
+#include "State.hh"
 
 // This Oblivious Transfer (OT) protocol was
 // first introduced by Bellare and Micali,
@@ -11,26 +11,12 @@
 // in the following paper:
 // https://dl.acm.org/doi/10.5555/365411.365502
 
-namespace BellareMicaliOTProtocol {
+namespace BM {
   const int MSG_NUM_BASE = 16;
 
   class ParameterSet {
   public:
     QuadraticResidueGroup group;
-  };
-
-  class State;
-  typedef std::unique_ptr<State> StatePtr;
-
-  class State {
-  public:
-    // Both 'isSend' and 'isRecv' return false by default;
-    // child classes override only to return true.
-    // Communication states are marked with 'Send' or 'Recv' prefixes.
-    virtual bool isSend();
-    virtual bool isRecv();
-    virtual std::string message();
-    virtual StatePtr next() = 0;
   };
 
   class SenderMemory {
