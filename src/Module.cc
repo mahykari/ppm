@@ -141,7 +141,7 @@ void Selector::buildImpl(Circuit& circuit) {
     sel0.buildImpl(circuit);
     sel1.buildImpl(circuit);
 
-    auto sel = OrGate(sel0[0], sel1[0]);
+    auto sel = OrGate(Word(sel0), Word(sel1));
     sel.buildImpl(circuit);
     this->outputWord = sel;
   } else {
@@ -152,7 +152,7 @@ void Selector::buildImpl(Circuit& circuit) {
     // To select output for the current selector,
     // we use another 2-to-1 selector
     // with the MSB of `select` as its select input.
-    auto halfSelect = Word(select.begin() + 1, select.end());
+    auto halfSelect = Word(select.begin(), select.end() - 1);
     auto mid = 1 << (selectLength - 1);
     auto input0 = WordVector(input.begin()      , input.begin() + mid);
     auto input1 = WordVector(input.begin() + mid, input.end()        );
@@ -163,7 +163,7 @@ void Selector::buildImpl(Circuit& circuit) {
 
     auto selector2to1 = Selector(
       { selector0, selector1 },
-      { select[0] } );
+      { select.back() } );
     selector2to1.buildImpl(circuit);
     this->outputWord = selector2to1;
   }

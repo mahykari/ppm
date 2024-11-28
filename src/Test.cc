@@ -67,6 +67,7 @@ struct IncGenerator {
 unsigned IncGenerator::current_ = 0;
 
 void testModule() {
+  printf("==== Testing add+compare circuit ====\n");
   vector<bool> valA = {0, 1, 0, 1, 0, 1, 1, 0}; // 106
   vector<bool> valB = {1, 1, 1, 1, 0, 0, 1, 0}; //  79
   vector<bool> valC = {1, 1, 1, 1, 1, 1, 0, 1}; // 191
@@ -107,6 +108,43 @@ void testModule() {
     cout << o << ' ';
   cout << "}\n";
   assert (output == (vector<bool> {0, 1}));
+  cout << "circuit size: " << circuit.size() << '\n';
+
+  printf("==== Testing select circuit ====\n");
+  IncGenerator::current_ = 0;
+  vector<bool> valSel = {0, 1};
+  valA = {1, 0, 0, 0};
+  valB = {0, 1, 0, 0};
+  valC = {0, 0, 1, 0};
+  vector<bool>
+  valD = {0, 0, 0, 1};
+  wordLength = valA.size();
+  Word inSel(2);
+  inA = Word(wordLength);
+  inB = Word(wordLength);
+  inC = Word(wordLength);
+  auto inD = Word(wordLength);
+  generate(inA.begin(), inA.end(), gen);
+  generate(inB.begin(), inB.end(), gen);
+  generate(inC.begin(), inC.end(), gen);
+  generate(inD.begin(), inD.end(), gen);
+  generate(inSel.begin(), inSel.end(), gen);
+  circuit = Circuit(4 * wordLength + 2, wordLength);
+  auto selector = Selector({inA, inB, inC, inD}, inSel);
+  selector.build(circuit);
+  cout << "Word(selector).size() = " << Word(selector).size() << '\n';
+  circuit.updateOutputs(selector);
+  vals = valA;
+  vals.insert(vals.end(), valB.begin(), valB.end());
+  vals.insert(vals.end(), valC.begin(), valC.end());
+  vals.insert(vals.end(), valD.begin(), valD.end());
+  vals.insert(vals.end(), valSel.begin(), valSel.end());
+  output = circuit.evaluate(vals);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  assert (output == valC);
   cout << "circuit size: " << circuit.size() << '\n';
 }
 
