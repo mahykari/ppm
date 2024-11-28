@@ -16,6 +16,9 @@ public:
 };
 
 int main(int argc, char* argv[]) {
+  printf("E: System is outdated\n");
+  exit(EXIT_FAILURE);
+
   auto cli = CommandLineInterface();
   cli.parse(argc, argv);
 
