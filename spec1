@@ -1,0 +1,13 @@
+registerWordSizes = [4, 4, 10, 1]
+inputWordSizes = [4, 4, 10]
+abort = R[3]
+inseg1 = I[1]
+inseg2 = I[2]
+# All arithmetic is done modulo 2^wordlen.
+# For the first G -> A pair with an active G,
+# A is executed, and other pairs are skipped.
+do
+  (R[3] == 1) -> { abort <- 1 }
+  ((R[1] < I[1]) & (R[2] < 10)) -> { R[1] <- inseg1, R[2] <- inseg1 - inseg2 }
+  (I[1] < R[2]) -> { R[3] <- 1 }
+end
