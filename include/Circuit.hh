@@ -19,6 +19,8 @@ public:
 };
 
 typedef std::unique_ptr<Driver> DriverPtr;
+typedef std::vector<bool> ValueWord;
+typedef std::vector<unsigned> Word;
 
 class Gate : public Driver {
 public:
@@ -33,16 +35,23 @@ public:
   unsigned addGate(unsigned inputLeft, unsigned inputRight);
   std::vector<Driver*> shuffle();
   std::vector<Driver*> get();
+  void updateOutputs(Word outputIds);
   // Method size() returns the number of *drivers* in the circuit,
   // i.e., this->drivers.size().
   unsigned size();
+  ValueWord evaluate(ValueWord input);
+  ValueWord probe(ValueWord input, Word probed);
 private:
   // A particular gate can be picked with just an ID,
   // as all gates are NAND gates.
   unsigned inputLength;
   unsigned outputLength;
   unsigned counter;
-  std::vector<DriverPtr> drivers;
+  std::vector<DriverPtr> inputs;
+  std::vector<DriverPtr> internals;
+  std::vector<DriverPtr> outputs;
+  Driver* findDriver(unsigned id);
+  ValueWord evaluateInternal(ValueWord input);
 };
 
 #endif

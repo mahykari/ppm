@@ -16,6 +16,8 @@ public:
 namespace L = LWY;
 
 int main (int argc, char *argv[]) {
+  printf("E: Monitor is outdated\n");
+  exit(EXIT_FAILURE);
   auto cli = CommandLineInterface();
   cli.parse(argc, argv);
 
