@@ -5,6 +5,7 @@
 #include "Sha512YaoGarbler.hh"
 #include "StringUtils.hh"
 #include "Module.hh"
+#include "SpecToCircuitConverter.hh"
 
 using namespace std;
 
@@ -148,6 +149,66 @@ void testModule() {
   cout << "circuit size: " << circuit.size() << '\n';
 }
 
+// Copy from https://stackoverflow.com/a/17299623/15279018.
+template <typename T>
+std::vector<T> flatten(const std::vector<std::vector<T>>& v) {
+  std::size_t total_size = 0;
+  for (const auto& sub : v)
+    total_size += sub.size();
+  std::vector<T> result;
+  result.reserve(total_size);
+  for (const auto& sub : v)
+    result.insert(result.end(), sub.begin(), sub.end());
+  return result;
+}
+
+void testSpec2Circ() {
+  auto converter = SpecToCircuitConverter("test.spec");
+  auto circ = converter.convert();
+  cout << "Converted spec1 to circuit\n";
+  cout << "circ.size() = " << circ.size() << '\n';
+  ValueWord moncur = ValueWord(10, 0U);
+  ValueWord abort = {0};
+  ValueWord chkin = {0,0,1,1,0,1,0,0,0,0}; // 44
+  ValueWord chkout = {0,0,0,0,0,0,0,0,0,0};
+  ValueWord syscur = chkin;
+  auto input = flatten(
+    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+  auto output = circ.evaluate(input);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  moncur = ValueWord(output.begin(), output.begin() + 10);
+  chkin = ValueWord(10,0);
+  chkout = {1,1,1,0,1,0,0,0,0,0}; // 23
+  // Syscur should be 21
+  syscur = {1,0,1,0,1,0,0,0,0,0}; // 21
+  input = flatten(
+    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+  output = circ.evaluate(input);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  chkin = ValueWord(10,0);
+  chkout = {0,1,0,0,0,0,0,0,0,0}; // 2
+  syscur = {1,0,1,1,0,0,0,0,0,0}; // Something that's not 19
+  moncur = ValueWord(output.begin(), output.begin() + 10);
+  input = flatten(
+    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+  output = circ.evaluate(input);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  auto guardVals = circ.probe(input, converter.guards);
+  cout << "guard values: { ";
+  for (auto o : guardVals)
+    cout << o << ' ';
+  cout << "}\n";
+}
+
 void sep() {
   cout << string(70, '-') << '\n';
 }
@@ -158,4 +219,6 @@ int main() {
   testGarbler();
   sep();
   testModule();
+  sep();
+  testSpec2Circ();
 }
