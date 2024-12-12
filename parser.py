@@ -33,7 +33,7 @@ class LinExpr:
   pass
 
 
-class Action:
+class GuardAction:
   def __init__(self):
     # register index -> new value
     self.updates: dict[int, LinExpr] = {}
@@ -47,6 +47,21 @@ class Action:
   def __repr__(self):
     return self.__str__()
 
+class RegAction:
+  def __init__(self):
+    # guard index -> new value
+    # A RegAction is, in a sense,
+    # the inverted form of a GuardAction;
+    # it shows, for a given register,
+    # what guards update it,
+    # and with what values (i.e., expressions).
+    self.updates: dict[int, LinExpr] = {}
+
+  def __str__(self):
+    return (
+      'RegAction(' +
+      ', '.join([f'guard {k} <- {v}' for k, v in self.updates.items()]) +
+      ')')
 
 def wsclear(s):
   """Clear whitespace from a string."""
@@ -62,7 +77,7 @@ class Program:
     # but not to another alias.
     self.aliases: Dict[str, str] = {}
     self.guards: List[BoolExpr] = []
-    self.actions: List[Action] = []
+    self.actions: List[GuardAction] = []
     self.atoms: List[BoolExpr] = []
     self._init_aliases()
 
@@ -109,10 +124,13 @@ class Program:
       # constant * (register or input)
       assert (len(expr.args) == 2)
       assert (isinstance(expr.args[0], sp.Integer))
+      # EXTRA ASSUMPTION: Multiplication only appears in subtractions;
+      # so the constant is always -1.
+      assert (expr.args[0] == -1)
       const = expr.args[0]
       reg = expr.args[1]
       newroot = f'driver{self.postCntr}'
-      module = f'Multiplier {const} {reg} -> driver{self.postCntr}\n'
+      module = f'Negator {reg} -> driver{self.postCntr}\n'
       self.postCntr += 1
       return module, newroot
     elif isinstance(expr, sp.Eq | sp.Lt):
@@ -131,17 +149,37 @@ class Program:
     else:
       raise ValueError(f'Unsupported expression {expr}')
 
+  def _regActions(self, actions):
+    regCount = len(self.registerWordSizes)
+    regacts = [RegAction() for _ in range(regCount)]
+    for gidx, action in enumerate(actions):
+      for ridx, lexpr in action.updates.items():
+        regacts[ridx].updates[gidx] = lexpr
+    return regacts
+
+  def _sepline(self):
+    return '-' * 8 + '\n'
+
+  def _sepexpr(self):
+    return '$\n'
+
+  def _seplist(self):
+    return '#\n'
+
   def toIR(self):
     ir = ''
     ir += f'{REG_WORD_SZ} '
     ir += ' '.join(map(str, self.registerWordSizes)) + '\n'
     ir += f'{INP_WORD_SZ} '
     ir += ' '.join(map(str, self.inputWordSizes)) + '\n'
+    ir += self._sepline()
     ir += f'guards {len(self.guards)}\n'
     for guard in self.guards:
       tree, _ = self.post(guard, None)
       ir += tree
-      ir += '$\n'
+      ir += self._sepexpr()
+
+    ir += self._sepline()
     ir += f'actions {len(self.actions)}\n'
     for action in self.actions:
       ir += f'updates {len(action.updates)}\n'
@@ -149,7 +187,20 @@ class Program:
         ir += f'R[{idx}]\n'
         tree, _ = self.post(lexpr, None)
         ir += tree
+        ir += self._sepexpr()
+      ir += self._seplist()
+
+    ir += self._sepline()
+    ir += f'regactions {len(self.registerWordSizes)}\n'
+    regacts = self._regActions(self.actions)
+    for regact in regacts:
+      ir += f'updates {len(regact.updates)}\n'
+      for idx, lexpr in regact.updates.items():
+        ir += f'guard {idx}\n'
+        tree, _ = self.post(lexpr, None)
+        ir += tree
         ir += '$\n'
+      ir += '#\n'
     return ir
 
 class Definition:
@@ -221,7 +272,7 @@ class Parser():
 
   def readAction(self, action):
     logger.debug(f'Action {action}')
-    a = Action()
+    a = GuardAction()
     for update in action[1:-1].split(','):
       reg, newVal = update.split('<-')
       reg = self.readReg(reg)
