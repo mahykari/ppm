@@ -150,4 +150,26 @@ private:
   unsigned source;
 };
 
+class Negator : public Module {
+public:
+  Negator(Word input);
+  void buildImpl(Circuit&) override;
+private:
+  Word input;
+};
+
+typedef std::pair<unsigned, Word> RegisterUpdate;
+typedef std::vector<RegisterUpdate> RegisterUpdateVec;
+
+class TransitionSystem : public Module {
+public:
+  TransitionSystem(
+    WordVector registers,
+    std::vector<RegisterUpdateVec> registerUpdates);
+  void buildImpl(Circuit&) override;
+private:
+  WordVector registers;
+  std::vector<RegisterUpdateVec> registerUpdates;
+};
+
 #endif

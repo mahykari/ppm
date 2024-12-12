@@ -238,7 +238,6 @@ void EqChecker::buildImpl(Circuit& circuit) {
   // the most significant bit.
   auto bitEq = XnorGate(this->inputLeft, this->inputRight);
   bitEq.build(circuit);
-  printf("D: bitEq built\n");
   auto bitEqOut = bitEq.output();
 
   auto length = this->inputLeft.size();
@@ -252,7 +251,6 @@ void EqChecker::buildImpl(Circuit& circuit) {
     partialEq[idx] = aggregator;
   }
   outputWord = { partialEq[0] };
-  printf("D: EqChecker::buildImpl finished\n");
 }
 
 LtChecker::LtChecker(Word inputLeft, Word inputRight)
@@ -310,4 +308,53 @@ void One::buildImpl(Circuit& circuit) {
   inv.build(circuit);
   auto out = circuit.addGate(this->source, inv);
   this->outputWord = { out };
+}
+
+Negator::Negator(Word input) : input(input) {}
+
+void Negator::buildImpl(Circuit& circuit) {
+  auto inputInv = Inverter(this->input);
+  inputInv.build(circuit);
+  auto one = One(this->input[0]);
+  auto zero = Zero(this->input[0]);
+  one.build(circuit);
+  zero.build(circuit);
+  Word unit(input.size());
+  unit[0] = one;
+  for (unsigned i = 1; i < input.size(); i++)
+    unit[i] = zero;
+  auto out = Adder(inputInv, unit, zero);
+  out.build(circuit);
+  this->outputWord = out.sum();
+}
+
+TransitionSystem::TransitionSystem(
+  WordVector registers,
+  std::vector<RegisterUpdateVec> actions)
+: registers(registers), registerUpdates(actions) {}
+
+void TransitionSystem::buildImpl(Circuit& circuit) {
+  // For every register, we need a sequence of selectors,
+  // where each selector corresponds to a guard.
+  this->outputWord = {};
+  for (unsigned i = 0; i < this->registers.size(); i++) {
+    auto prevUpdateVal = this->registers[i];
+    auto& updates = this->registerUpdates[i];
+    if (updates.empty()) {
+      auto dummyAnd = AndGate(prevUpdateVal, prevUpdateVal);
+      dummyAnd.build(circuit);
+      Word dummyOutput = dummyAnd;
+      this->outputWord.insert(
+        this->outputWord.end(), dummyOutput.begin(), dummyOutput.end());
+      continue;
+    }
+    for (auto& update : updates) {
+      auto& [guard, updateVal] = update;
+      auto select = Selector({prevUpdateVal, updateVal}, {guard});
+      select.build(circuit);
+      prevUpdateVal = select;
+    }
+    this->outputWord.insert(
+      this->outputWord.end(), prevUpdateVal.begin(), prevUpdateVal.end());
+  }
 }
