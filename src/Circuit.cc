@@ -47,7 +47,7 @@ std::vector<Driver*> Circuit::shuffle() {
 }
 
 std::vector<Driver*> Circuit::get() {
-  std::vector<Driver*> drivers(this->counter, nullptr);
+  std::vector<Driver*> drivers;
   for (auto& input : this->inputs)
     drivers.push_back(input.get());
   for (auto& gate : this->internals)
@@ -67,14 +67,15 @@ void Circuit::updateOutputs(Word outputIds) {
   // printf("}\n");
   auto idsIt = outputIds.begin();
   auto internalsIt = this->internals.begin();
-  while (idsIt != outputIds.end()) {
+  while (
+      idsIt != outputIds.end()
+      and internalsIt != this->internals.end()) {
     if (internalsIt->get()->id == *idsIt) {
       this->outputs.push_back(std::move(*internalsIt));
       idsIt++;
     }
     internalsIt++;
   }
-  printf("D: outputs.size() = %lu\n", this->outputs.size());
 
   auto removeIt = std::remove_if(
     this->internals.begin(), this->internals.end(),
