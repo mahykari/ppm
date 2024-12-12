@@ -7,6 +7,9 @@
 #include "QuadraticResidueGroup.hh"
 #include "YaoGarbler.hh"
 
+std::vector<std::string> split(const std::string& s);
+bool isNumber(const std::string& s);
+
 std::string toString(const BigInt& n, int base = 10);
 std::string toString(const QuadraticResidueGroup& g);
 
