@@ -2,21 +2,28 @@
 #include <sys/wait.h>
 #include <cassert>
 #include <fstream>
+#include <sstream>
 #include <algorithm>
 #include "StringUtils.hh"
 #include "SpecToCircuitConverter.hh"
+#include "Exceptions.hh"
 
-using SCC = SpecToCircuitConverter;
-
-SCC::SpecToCircuitConverter(std::string specFileName)
+SpecToCircuitConverter
+::SpecToCircuitConverter(std::string specFileName)
   : specFileName(specFileName), circuit(Circuit(0, 0)) {}
 
-Circuit SCC::convert() {
+BaseConverter::BaseConverter(std::string specFileName)
+  : SpecToCircuitConverter(specFileName) {
+    throw OutdatedClass("BaseConverter");
+  }
+
+
+Circuit BaseConverter::convert() {
   specToIR();
   return IRToCircuit();
 }
 
-void SCC::specToIR() {
+void BaseConverter::specToIR() {
   printf("I: parsing spec file %s...\n", specFileName.c_str());
   std::string specParserName = "./SpecParser.sh";
   pid_t pid = fork();
@@ -40,7 +47,7 @@ void SCC::specToIR() {
   }
 }
 
-Circuit SCC::IRToCircuit() {
+Circuit BaseConverter::IRToCircuit() {
   const std::string SEPLINE = std::string(8, '-');
   const std::string SEPEXPR = "$";
   const std::string SEPLIST = "#";
@@ -188,7 +195,7 @@ Circuit SCC::IRToCircuit() {
   return std::move(this->circuit);
 };
 
-Word SCC::readExpression(std::vector<std::string> expr) {
+Word BaseConverter::readExpression(std::vector<std::string> expr) {
   const unsigned MAX_WORD_SZ = 64;
   if (expr.size() == 1 && split(expr[0]).size() == 1) {
     // This expression is just an identifier or a number.
@@ -234,7 +241,7 @@ Word SCC::readExpression(std::vector<std::string> expr) {
   return result;
 }
 
-Word SCC::buildOperator(std::string op, std::vector<Word> operands) {
+Word BaseConverter::buildOperator(std::string op, std::vector<Word> operands) {
   auto isBinary = (op != "Inverter" and op != "Negator");
   assert (not isBinary or operands.size() == 2);
   if (op == "AndGate") {
@@ -276,7 +283,7 @@ Word SCC::buildOperator(std::string op, std::vector<Word> operands) {
   }
 }
 
-Word SCC::readNumber(std::string number, unsigned length) {
+Word BaseConverter::readNumber(std::string number, unsigned length) {
   // ASSUMPTION: number is an unsigned integer in base 10.
   Word word(length);
   auto n = std::stol(number);
@@ -285,4 +292,218 @@ Word SCC::readNumber(std::string number, unsigned length) {
     word[i] = this->circuitConstants[bit];
   }
   return word;
+}
+
+YosysConverter::YosysConverter(std::string specFileName)
+  : SpecToCircuitConverter(specFileName) {}
+
+Circuit YosysConverter::convert() {
+  specToBlif();
+  blifToCircuit();
+  return std::move(this->circuit);
+}
+
+void YosysConverter::specToBlif() {
+  // For now, specFileName doesn't matter.
+  printf("I: parsing spec file %s...\n", this->specFileName.c_str());
+  std::string specParserName = "./YosysParser.sh";
+  pid_t pid = fork();
+  assert (pid >= 0);
+  if (pid == 0) {
+    char* argv[] = {
+      (char*) specParserName.c_str(),
+      (char*) this->specFileName.c_str(),
+      NULL};
+    execv((char*) specParserName.c_str(), argv);
+    perror ("execv");
+    exit(EXIT_FAILURE);
+  }
+  if (pid > 0) {
+    pid_t waitReturn;
+    int status;
+    do {
+      waitReturn = waitpid(pid, &status, WUNTRACED | WCONTINUED);
+      assert (waitReturn >= 0);
+      assert (WIFEXITED(status) and WEXITSTATUS(status) == 0);
+    } while (!WIFEXITED(status) && !WIFSIGNALED(status));
+  }
+}
+
+void YosysConverter::blifToCircuit() {
+  std::string blifFileName = "synth.blif";
+  printf("I: parsing BLIF file %s...\n", blifFileName.c_str());
+  BlifParser parser(blifFileName);
+  parser.parse(this->circuit);
+}
+
+BlifParser::BlifParser(std::string blifFileName)
+  : blifFileName(blifFileName) {}
+
+void BlifParser::parse(Circuit& circuit) {
+  std::ifstream blifFile(blifFileName);
+  std::vector<std::string> lines;
+  std::string line;
+  while (std::getline(blifFile, line))
+    lines.push_back(line);
+
+  // First, we parse inputs and outputs.
+  for (auto& line : lines) {
+    if (line.starts_with(".inputs")) parseInputs(line);
+    if (line.starts_with(".outputs")) parseOutputs(line);
+  }
+  printf("D: inputs and outputs parsed.\n");
+
+  // Now we should reshape the circuit to be of proper size.
+  circuit = Circuit(
+    this->monitorStateLength + this->systemStateLength,
+    this->outputLength);
+  auto zero = Zero(0);
+  auto one = One(0);
+  zero.build(circuit);
+  one.build(circuit);
+  this->wireIndices["$false"] = zero;
+  this->wireIndices["$true"] = one;
+  printf("D: circuit initialized.\n");
+  // Second, we parse connections.
+  unsigned connCounter = 0;
+  for (auto& line : lines) {
+    if (line.starts_with(".conn")) { parseConnection(line); connCounter++; }
+  }
+  printf("D: connections (#%u) parsed.\n", connCounter);
+  // Lastly, we parse gates.
+  unsigned gateCounter = 0;
+  for (auto& line : lines) {
+    if (line.starts_with(".subckt")) { parseGate(line); gateCounter++; };
+  }
+  printf("D: gates (#%u) parsed.\n", gateCounter);
+  // Now we can build the circuit.
+  buildCircuit(circuit);
+  // Now we update the circuit outputs.
+  for (auto& key : this->graph)
+    assert (this->wireIndices.find(key.first) != this->wireIndices.end());
+
+  Word outputs(this->outputLength);
+  for (unsigned i = 0; i < this->outputLength; i++) {
+    auto wire = "out[" + std::to_string(i) + "]";
+    assert (wireIndices.find(wire) != wireIndices.end());
+    outputs[i] = wireIndices[wire];
+  }
+  // Outputs might be in any order,
+  // since some of them also drive other wires.
+  // To fix this, we add 'identity' gates to the circuit.
+  printf("D: outputs: ");
+  for (auto& out : outputs)
+    printf("%d ", out);
+  printf("\n");
+  printf("D: circuit size: %d\n", circuit.size());
+  printf("D: adding identity gates for outputs...\n");
+  auto id = Identity(outputs);
+  id.build(circuit);
+  printf("D: outputs after identity: ");
+  for (auto& out : Word(id))
+    printf("%d ", out);
+  printf("\n");
+  printf("D: circuit size after identity: %d\n", circuit.size());
+  circuit.updateOutputs(id);
+}
+
+void BlifParser::parseInputs(const std::string& line) {
+  std::istringstream iss(line.substr(7));  // skip ".inputs "
+  std::string input;
+  unsigned inputIdx = 0;
+  this->monitorStateLength = 0;
+  this->systemStateLength = 0;
+  while (iss >> input) {
+    assert (input.starts_with("monitor[") or input.starts_with("system["));
+    // Inputs are indexed manually.
+    // ASSUMPTION: Monitor inputs always come before system inputs.
+    // So, line looks like:
+    // .inputs monitor[0] ... monitor[n] system[0] ... system[m]
+    monitorStateLength += input.starts_with("monitor[");
+    systemStateLength += input.starts_with("system[");
+    this->graph[input] = {};
+    this->wireIndices[input] = inputIdx++;
+  }
+}
+
+void BlifParser::parseOutputs(const std::string& line) {
+  std::istringstream iss(line.substr(8));  // skip ".outputs "
+  std::string output;
+  this->outputLength = 0;
+  // At this stage, we can't do anything special with the outputs.
+  // We only know that all output signals are named out[i], for some i.
+  while (iss >> output) {
+    assert (output.starts_with("out["));
+    this->graph[output] = {};
+    outputLength++;
+  }
+}
+
+void BlifParser::parseConnection(const std::string& line) {
+  // Every connection is a forward edge.
+  std::istringstream iss(line.substr(5)); // skip ".conn "
+  std::string first, second;
+  iss >> first >> second;
+  this->graph[second].push_back(first);
+}
+
+void BlifParser::parseGate(const std::string& line) {
+  if (line.starts_with(".subckt $_NOT_")) {
+    // Parse "A=input Y=output"
+    size_t aPos = line.find("A=") + 2;
+    size_t yPos = line.find("Y=") + 2;
+    std::string input = line.substr(aPos, line.find(" ", aPos) - aPos);
+    std::string output = line.substr(yPos);
+
+    // NOT(x) = NAND(x,x)
+    this->graph[output] = {input, input};
+  } else if (line.starts_with(".subckt $_NAND_")) {
+    // Parse "A=in1 B=in2 Y=output"
+    size_t aPos = line.find("A=") + 2;
+    size_t bPos = line.find("B=") + 2;
+    size_t yPos = line.find("Y=") + 2;
+    std::string in1 = line.substr(aPos, line.find(" ", aPos) - aPos);
+    std::string in2 = line.substr(bPos, line.find(" ", bPos) - bPos);
+    std::string output = line.substr(yPos);
+    this->graph[output] = {in1, in2};
+  }
+}
+
+void BlifParser::buildCircuit(Circuit& circuit) {
+  // The goal is to build all output wires;
+  // so we start from the outputs and traverse backwards.
+  for (unsigned i = 0; i < this->outputLength; i++) {
+    std::string output = "out[" + std::to_string(i) + "]";
+    buildWire(output, circuit);
+  }
+}
+
+void BlifParser::buildWire(std::string wire, Circuit& circuit) {
+  if (wireIndices.find(wire) != wireIndices.end()) return;
+  // If wire is not in the circuit, we should build it.
+  // First, we build all the wires connected to this wire.
+  for (auto& connected : this->graph[wire])
+    buildWire(connected, circuit);
+  // Now, we can build the wire.
+  // Alias wires always have one incoming wire,
+  // so we can distinguish them from other wires.
+  if (this->graph[wire].size() == 1) {
+    auto driver = graph[wire][0];
+    wireIndices[wire] = wireIndices[driver];
+  } else {
+    // printf("D: building gate for %s, ", wire.c_str());
+    // printf("inputs: ");
+    // for (auto& in : this->graph[wire])
+    //   printf("%s ", in.c_str());
+    // printf("\n");
+    assert (this->graph[wire].size() == 2);
+    auto in1 = this->graph[wire][0];
+    auto in2 = this->graph[wire][1];
+    auto in1Idx = wireIndices[in1];
+    auto in2Idx = wireIndices[in2];
+    auto wireIdx = circuit.addGate(in1Idx, in2Idx);
+    // printf("D: in1Idx = %d, in2Idx = %d, wireIdx = %d\n",
+    // in1Idx, in2Idx, wireIdx);
+    wireIndices[wire] = wireIdx;
+  }
 }
