@@ -163,50 +163,81 @@ std::vector<T> flatten(const std::vector<std::vector<T>>& v) {
 }
 
 void testSpec2Circ() {
-  auto converter = SpecToCircuitConverter("test.spec");
+  try {
+    auto converter = BaseConverter("test.spec");
+    auto circ = converter.convert();
+    auto guards = converter.guards;
+    cout << "Converted spec1 to circuit\n";
+    cout << "circ.size() = " << circ.size() << '\n';
+    ValueWord moncur = ValueWord(10, 0U);
+    ValueWord abort = {0};
+    ValueWord chkin = {0,0,1,1,0,1,0,0,0,0}; // 44
+    ValueWord chkout = {0,0,0,0,0,0,0,0,0,0};
+    ValueWord syscur = chkin;
+    auto input = flatten(
+      vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+    auto output = circ.evaluate(input);
+    cout << "output: { ";
+    for (auto o : output)
+      cout << o << ' ';
+    cout << "}\n";
+    moncur = ValueWord(output.begin(), output.begin() + 10);
+    chkin = ValueWord(10,0);
+    chkout = {1,1,1,0,1,0,0,0,0,0}; // 23
+    // Syscur should be 21
+    syscur = {1,0,1,0,1,0,0,0,0,0}; // 21
+    input = flatten(
+      vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+    output = circ.evaluate(input);
+    cout << "output: { ";
+    for (auto o : output)
+      cout << o << ' ';
+    cout << "}\n";
+    chkin = ValueWord(10,0);
+    chkout = {0,1,0,0,0,0,0,0,0,0}; // 2
+    syscur = {1,0,1,1,0,0,0,0,0,0}; // Something that's not 19
+    moncur = ValueWord(output.begin(), output.begin() + 10);
+    input = flatten(
+      vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+    output = circ.evaluate(input);
+    cout << "output: { ";
+    for (auto o : output)
+      cout << o << ' ';
+    cout << "}\n";
+    auto guardVals = circ.probe(input, guards);
+    cout << "guard values: { ";
+    for (auto o : guardVals)
+      cout << o << ' ';
+    cout << "}\n";
+  } catch (const std::exception& e) {
+    cout << e.what() << '\n';
+  }
+}
+
+void testSpec2CircYosys() {
+  auto converter = YosysConverter("lockstep.v");
   auto circ = converter.convert();
-  cout << "Converted spec1 to circuit\n";
+  cout << "Converted spec to circuit\n";
   cout << "circ.size() = " << circ.size() << '\n';
-  ValueWord moncur = ValueWord(10, 0U);
-  ValueWord abort = {0};
-  ValueWord chkin = {0,0,1,1,0,1,0,0,0,0}; // 44
-  ValueWord chkout = {0,0,0,0,0,0,0,0,0,0};
-  ValueWord syscur = chkin;
+  ValueWord monitor = {0,1,0,1,1,1,0,0,1,0};
+  ValueWord system =  {1,1,1,1,1,0,0,0,0,0};
   auto input = flatten(
-    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+    vector<ValueWord> {monitor, system});
   auto output = circ.evaluate(input);
   cout << "output: { ";
   for (auto o : output)
     cout << o << ' ';
   cout << "}\n";
-  moncur = ValueWord(output.begin(), output.begin() + 10);
-  chkin = ValueWord(10,0);
-  chkout = {1,1,1,0,1,0,0,0,0,0}; // 23
-  // Syscur should be 21
-  syscur = {1,0,1,0,1,0,0,0,0,0}; // 21
+  assert (output == (ValueWord {0, 1}));
+  system = {0,1,0,1,1,1,0,0,1,0};
   input = flatten(
-    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
+    vector<ValueWord> {monitor, system});
   output = circ.evaluate(input);
   cout << "output: { ";
   for (auto o : output)
     cout << o << ' ';
   cout << "}\n";
-  chkin = ValueWord(10,0);
-  chkout = {0,1,0,0,0,0,0,0,0,0}; // 2
-  syscur = {1,0,1,1,0,0,0,0,0,0}; // Something that's not 19
-  moncur = ValueWord(output.begin(), output.begin() + 10);
-  input = flatten(
-    vector<ValueWord> {moncur, abort, chkin, chkout, syscur});
-  output = circ.evaluate(input);
-  cout << "output: { ";
-  for (auto o : output)
-    cout << o << ' ';
-  cout << "}\n";
-  auto guardVals = circ.probe(input, converter.guards);
-  cout << "guard values: { ";
-  for (auto o : guardVals)
-    cout << o << ' ';
-  cout << "}\n";
+  assert (output == (ValueWord {1, 0}));
 }
 
 void sep() {
@@ -221,4 +252,6 @@ int main() {
   testModule();
   sep();
   testSpec2Circ();
+  sep();
+  testSpec2CircYosys();
 }
