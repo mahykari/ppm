@@ -38,6 +38,14 @@ private:
   Word input;
 };
 
+class Identity : public Module {
+public:
+  Identity(Word input);
+  void buildImpl(Circuit&) override;
+private:
+  Word input;
+};
+
 class BinaryGate : public Module {
 public:
   BinaryGate(Word inputLeft, Word inputRight);

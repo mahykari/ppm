@@ -50,6 +50,17 @@ void Inverter::buildImpl(Circuit& circuit) {
   }
 }
 
+Identity::Identity(Word input) : input(input) {}
+
+void Identity::buildImpl(Circuit& circuit) {
+  // An identity gate is two layers of inverters.
+  auto inv1 = Inverter(this->input);
+  inv1.build(circuit);
+  auto inv2 = Inverter(Word(inv1));
+  inv2.build(circuit);
+  this->outputWord = inv2;
+}
+
 BinaryGate::BinaryGate(Word inputLeft, Word inputRight)
 : inputLeft(inputLeft), inputRight(inputRight) {}
 
