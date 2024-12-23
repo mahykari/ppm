@@ -1,0 +1,29 @@
+# NOTE: This is a parameterised scirpt.
+# Make sure to replace the placeholders before running it.
+# Synthesise spec module to NAND (and NOT) gates, using ABC.
+read_verilog SPEC_FILE
+hierarchy -check -top Spec
+rename Spec SpecSyn
+
+select SpecSyn
+proc; opt
+techmap; opt
+abc -g NAND
+write_verilog -selected synth.v
+write_blif -top SpecSyn -icells -noalias -conn -impltf synth.blif
+show -format png
+select -clear
+exit
+
+# Test equivalence of spec and its synthesised version.
+read_verilog SPEC_FILE
+proc; opt
+techmap; opt
+miter -equiv Spec SpecSyn SpecMiter
+hierarchy -top SpecMiter
+select SpecMiter
+techmap; flatten; opt
+stat
+sat -prove trigger 0
+select -clear
+delete SpecMiter
