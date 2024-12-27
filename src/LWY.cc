@@ -512,6 +512,7 @@ std::string P::SendLabels::message() {
   auto offset =
     this->parameters->monitorStateLength
     + this->parameters->systemStateLength;
+  printf("D:  gateCount: %u\n", this->parameters->gateCount);
   for (unsigned i = 0; i < this->parameters->gateCount; i++) {
     auto driver = this->memory->shuffledCircuit[offset + i];
     auto index = 2 * (driver->id - offset);
@@ -702,6 +703,9 @@ bool P::SendFlagBit::getFlagBit() {
   auto& flagBitLabels = this->memory->flagBitLabels;
   auto& evaluatedDriverLabels = this->memory->evaluatedDriverLabels;
   auto flagBitLabel = evaluatedDriverLabels.back();
+  assert (
+    flagBitLabel == flagBitLabels[0]
+    or flagBitLabel == flagBitLabels[1]);
   return flagBitLabel == flagBitLabels[1];
 }
 
