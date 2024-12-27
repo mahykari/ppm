@@ -16,8 +16,6 @@ public:
 };
 
 int main(int argc, char* argv[]) {
-  printf("E: System is outdated\n");
-  exit(EXIT_FAILURE);
 
   auto cli = CommandLineInterface();
   cli.parse(argc, argv);
@@ -46,6 +44,5 @@ int main(int argc, char* argv[]) {
     &parameters, &systemMemory, &messageHandler);
   // printf("D: running system interface\n");
   interface.run();
-
   exit(EXIT_SUCCESS);
 }

@@ -28,26 +28,28 @@ void CLI::parse(int argc, char* argv[]) {
   for (int i = 1; i < argc; i += 2) {
     auto arg = std::string(argv[i]);
     if (arg == "-security")
-      securityParameter = atoi(argv[i + 1]);
+      this->securityParameter = atoi(argv[i + 1]);
     else if (arg == "-mslen")
-      monitorStateLength = atoi(argv[i + 1]);
+      this->monitorStateLength = atoi(argv[i + 1]);
     else if (arg == "-sslen")
-      systemStateLength = atoi(argv[i + 1]);
+      this->systemStateLength = atoi(argv[i + 1]);
     else if (arg == "-ngates")
-      gateCount = atoi(argv[i + 1]);
+      this->gateCount = atoi(argv[i + 1]);
     else if (arg == "-sys") {
       auto sys_name = std::string(argv[i + 1]);
       if (sys_name == "sweep")
-        system = std::make_unique<SweepSystem>();
+        this->system = std::make_unique<SweepSystem>();
       else if (sys_name == "jump")
-        system = std::make_unique<JumpSweepSystem>(systemStateLength);
+        this->system = std::make_unique<JumpSweepSystem>(systemStateLength);
+      else if (sys_name == "timekeeper")
+        this->system = std::make_unique<Timekeeper>();
       else {
         printf("Error: unknown system name\n");
         exit(EXIT_FAILURE);
       }
     }
     else if (arg == "-spec")
-      printf("Warning: passing spec is not yet implemented\n");
+      this->specFileName = std::string(argv[i + 1]);
     else {
       printf("Error: unknown argument %s\n", argv[i]);
       exit(EXIT_FAILURE);

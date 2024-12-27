@@ -2,6 +2,8 @@
 #define MONITORABLE_SYSTEM_HH
 
 #include <vector>
+#include "MathUtils.hh"
+#include "Exceptions.hh"
 
 class MonitorableSystem {
 public:
@@ -13,35 +15,40 @@ class SweepSystem : public MonitorableSystem {
 public:
   unsigned n = 0;
   std::vector<bool> x = {0, 0, 0, 0};
-  void next() override {
-    x[n % 4] = 1 - x[n % 4];
-    n++;
-  }
-  const std::vector<bool>& data() override {
-    return x;
-  }
+  void next() override;
+  const std::vector<bool>& data() override;
 };
 
 class JumpSweepSystem : public MonitorableSystem {
 public:
-  JumpSweepSystem(unsigned N) : N(N) {
-    x = std::vector<bool> (N, 0);
-  }
+  JumpSweepSystem(unsigned N);
 
   unsigned N;
   unsigned cntr = 0;
   std::vector<bool> x;
-  void next() override {
-    x[cntr] = 1 - x[cntr];
-    cntr += 2;
-    if (cntr == N)
-      cntr = 1;
-    if (cntr == N + 1)
-      cntr = 0;
-  }
-  const std::vector<bool>& data() override {
-    return x;
-  }
+  void next() override;
+  const std::vector<bool>& data() override;
+};
+
+class Timekeeper : public MonitorableSystem {
+public:
+  struct DoorUpdate {
+    unsigned enteredA = 0;
+    unsigned  exitedA = 0;
+    unsigned enteredB = 0;
+    unsigned  exitedB = 0;
+  };
+
+  Timekeeper(unsigned NDOORS, unsigned WORDLEN);
+  Timekeeper();
+
+  unsigned NDOORS;
+  unsigned WORDLEN;
+  unsigned cntr = 0;
+  std::vector<DoorUpdate> x;
+  std::vector<bool> dataVec;
+  void next() override;
+  const std::vector<bool>& data() override;
 };
 
 #endif

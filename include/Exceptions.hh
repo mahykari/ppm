@@ -27,4 +27,16 @@ public:
     : std::runtime_error("Unbuilt module has no output") {}
 };
 
+class OutdatedClass : public std::runtime_error {
+public:
+  OutdatedClass(std::string className)
+    : std::runtime_error("Outdated class: " + className) {}
+};
+
+class ConfigBehaviorUndefined : public std::runtime_error {
+public:
+  ConfigBehaviorUndefined()
+    : std::runtime_error("Config behavior undefined") {}
+};
+
 #endif

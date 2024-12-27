@@ -2,6 +2,19 @@
 #include "StringUtils.hh"
 #include "YaoGarbler.hh"
 
+std::vector<std::string> split(const std::string& s) {
+  std::vector<std::string> tokens;
+  std::stringstream ss(s);
+  std::string token;
+  while (ss >> token)
+    tokens.push_back(token);
+  return tokens;
+}
+
+bool isNumber(const std::string& s) {
+  return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
 std::string toString(const BigInt& n, int base) {
   return n.get_str(base);
 }

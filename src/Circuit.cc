@@ -47,7 +47,7 @@ std::vector<Driver*> Circuit::shuffle() {
 }
 
 std::vector<Driver*> Circuit::get() {
-  std::vector<Driver*> drivers(this->counter, nullptr);
+  std::vector<Driver*> drivers;
   for (auto& input : this->inputs)
     drivers.push_back(input.get());
   for (auto& gate : this->internals)
@@ -59,23 +59,17 @@ std::vector<Driver*> Circuit::get() {
 
 void Circuit::updateOutputs(Word outputIds) {
   assert (outputIds.size() == this->outputLength);
-  // ASSUMPTION: outputIds are sorted in ascending order.
   // ASSUMPTION: internals are sorted in ascending order of their ID's.
-  // printf("D: internals = { ");
-  // for (auto& i : this->internals)
-  //   printf("%u ", i->id);
-  // printf("}\n");
-  auto idsIt = outputIds.begin();
-  auto internalsIt = this->internals.begin();
-  while (idsIt != outputIds.end()) {
-    if (internalsIt->get()->id == *idsIt) {
-      this->outputs.push_back(std::move(*internalsIt));
-      idsIt++;
-    }
-    internalsIt++;
+  std::vector<unsigned> indices;
+  for (auto& id : outputIds) {
+    auto foundDriver = std::lower_bound(
+      this->internals.begin(), this->internals.end(), id,
+      [] (const DriverPtr& driver, unsigned id) { return driver->id < id; });
+    assert (foundDriver != this->internals.end());
+    indices.push_back(foundDriver - this->internals.begin());
   }
-  printf("D: outputs.size() = %lu\n", this->outputs.size());
-
+  for (auto& i : indices)
+    this->outputs.push_back(std::move(this->internals[i]));
   auto removeIt = std::remove_if(
     this->internals.begin(), this->internals.end(),
     [] (const DriverPtr& driver) { return driver == nullptr; });
@@ -95,7 +89,7 @@ ValueWord Circuit::evaluate(ValueWord input) {
   for (auto& o : this->outputs)
     probed.push_back(o->id);
   auto circuitOutput = this->probe(input, probed);
-  printf("D: circuitOutput.size() = %lu\n", circuitOutput.size());
+  // printf("D: circuitOutput.size() = %lu\n", circuitOutput.size());
   assert (circuitOutput.size() == this->outputLength);
   return circuitOutput;
 }
@@ -129,11 +123,15 @@ Driver* Circuit::findDriver(unsigned id) {
 }
 
 ValueWord Circuit::evaluateInternal(ValueWord input) {
+  // TODO: evaluate in topological order.
+  // This *can* be as simple as evaluating based on id.
   assert (input.size() == this->inputLength);
   ValueWord driverVals (this->counter, false);
   auto evalGate = [&] (Gate* gate) {
-    auto left = driverVals[gate->inputLeft];
-    auto right = driverVals[gate->inputRight];
+    bool left = driverVals[gate->inputLeft];
+    bool right = driverVals[gate->inputRight];
+    // printf("D: id=%u, inputLeft=%u, inputRight=%u, left=%u, right=%u\n",
+    // gate->id, gate->inputLeft, gate->inputRight, left, right);
     return !(left and right);
   };
   for (unsigned i = 0; i < this->inputLength; i++)

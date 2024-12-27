@@ -422,6 +422,8 @@ StatePtr P::GenerateDriverLabels::next() {
   unsigned driverCount = circuit->size();
   unsigned monitorStateLength = this->parameters->monitorStateLength;
   driverLabels.resize(driverCount - 1);
+  // Input and output monitor states receive the same labels.
+  // First, all but the last (monitorStateLength) drivers are labelled.
   for (unsigned i = 0; i < driverCount - monitorStateLength - 1; i++)
     driverLabels[i] = group.randomGenerator();
   auto offset = driverCount - monitorStateLength - 1;
@@ -454,6 +456,11 @@ bool P::SendLabels::isSend() {
   return true;
 }
 
+template <class T>
+void testIdx(std::vector<T> vec, unsigned idx) {
+  assert (idx < vec.size());
+}
+
 std::vector<BigInt> P::SendLabels::generateInWireLabels() {
   std::vector<BigInt> inWireLabels;
   unsigned gateCount = this->parameters->gateCount;
@@ -463,10 +470,17 @@ std::vector<BigInt> P::SendLabels::generateInWireLabels() {
   // For gate G, ingoing wires are labelled as follows:
   // Left: (Driver label of G.leftInput) ^ (Key of G.leftInput)
   // Right: Same, but for G.rightInput.
+
   for (unsigned i = 0; i < gateCount; i++) {
-    Gate* gate = static_cast<Gate*>(drivers[offset + i]);
+    auto gate = static_cast<Gate*>(drivers[offset + i]);
+    assert (gate != nullptr);
     auto indexLeft = 2 * i;
     auto indexRight = 2 * i + 1;
+
+    testIdx(this->memory->driverLabels, gate->inputLeft);
+    testIdx(this->memory->driverLabels, gate->inputRight);
+    testIdx(this->memory->inWireKeys, indexLeft);
+    testIdx(this->memory->inWireKeys, indexRight);
 
     inWireLabels[indexLeft] = this->parameters->group.exp(
       this->memory->driverLabels[gate->inputLeft],
@@ -484,8 +498,9 @@ void P::SendLabels::shuffleCircuit() {
 }
 
 std::string P::SendLabels::message() {
+  printf("D: SendLabels::message\n");
   auto inWireLabels = this->generateInWireLabels();
-  // printf("D:   in-wire labels generated\n");
+  printf("D:   in-wire labels generated\n");
   this->shuffleCircuit();
   std::stringstream ss;
   auto driverCount = this->memory->circuit->size();
@@ -497,6 +512,7 @@ std::string P::SendLabels::message() {
   auto offset =
     this->parameters->monitorStateLength
     + this->parameters->systemStateLength;
+  printf("D:  gateCount: %u\n", this->parameters->gateCount);
   for (unsigned i = 0; i < this->parameters->gateCount; i++) {
     auto driver = this->memory->shuffledCircuit[offset + i];
     auto index = 2 * (driver->id - offset);
@@ -687,6 +703,9 @@ bool P::SendFlagBit::getFlagBit() {
   auto& flagBitLabels = this->memory->flagBitLabels;
   auto& evaluatedDriverLabels = this->memory->evaluatedDriverLabels;
   auto flagBitLabel = evaluatedDriverLabels.back();
+  assert (
+    flagBitLabel == flagBitLabels[0]
+    or flagBitLabel == flagBitLabels[1]);
   return flagBitLabel == flagBitLabels[1];
 }
 
