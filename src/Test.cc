@@ -4,6 +4,7 @@
 #include "BigInt.hh"
 #include "Sha512YaoGarbler.hh"
 #include "StringUtils.hh"
+#include "Module.hh"
 
 using namespace std;
 
@@ -57,8 +58,104 @@ void testGarbler() {
   printf("- label=%s\n", label.c_str());
 }
 
+struct IncGenerator {
+  static unsigned current_;
+  IncGenerator() = default;
+  unsigned operator()() { return current_++; }
+};
+
+unsigned IncGenerator::current_ = 0;
+
+void testModule() {
+  printf("==== Testing add+compare circuit ====\n");
+  vector<bool> valA = {0, 1, 0, 1, 0, 1, 1, 0}; // 106
+  vector<bool> valB = {1, 1, 1, 1, 0, 0, 1, 0}; //  79
+  vector<bool> valC = {1, 1, 1, 1, 1, 1, 0, 1}; // 191
+
+  auto wordLength = valA.size();
+  auto circuit = Circuit(3 * wordLength, 2);
+  Word inA(wordLength);
+  Word inB(wordLength);
+  Word inC(wordLength);
+  IncGenerator gen;
+  generate(inA.begin(), inA.end(), gen);
+  generate(inB.begin(), inB.end(), gen);
+  generate(inC.begin(), inC.end(), gen);
+
+  printf("D: circuit size before build = %u\n", circuit.size());
+  auto zero = Zero(0);
+  zero.build(circuit);
+  printf("D: circuit size after zero = %u\n", circuit.size());
+  auto adder = Adder(inA, inB, zero);
+  adder.build(circuit);
+  printf("D: adder built\n");
+  printf("D: circuit size after adder = %u\n", circuit.size());
+  auto eq = EqChecker(adder.sum(), inC);
+  auto lt = LtChecker(adder.sum(), inC);
+  eq.build(circuit);
+  printf("D: eq built\n");
+  printf("D: circuit size after eq = %u\n", circuit.size());
+  lt.build(circuit);
+  printf("D: lt built\n");
+  printf("D: circuit size after lt = %u\n", circuit.size());
+  circuit.updateOutputs({eq, lt});
+  auto vals = valA;
+  vals.insert(vals.end(), valB.begin(), valB.end());
+  vals.insert(vals.end(), valC.begin(), valC.end());
+  auto output = circuit.evaluate(vals);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  assert (output == (vector<bool> {0, 1}));
+  cout << "circuit size: " << circuit.size() << '\n';
+
+  printf("==== Testing select circuit ====\n");
+  IncGenerator::current_ = 0;
+  vector<bool> valSel = {0, 1};
+  valA = {1, 0, 0, 0};
+  valB = {0, 1, 0, 0};
+  valC = {0, 0, 1, 0};
+  vector<bool>
+  valD = {0, 0, 0, 1};
+  wordLength = valA.size();
+  Word inSel(2);
+  inA = Word(wordLength);
+  inB = Word(wordLength);
+  inC = Word(wordLength);
+  auto inD = Word(wordLength);
+  generate(inA.begin(), inA.end(), gen);
+  generate(inB.begin(), inB.end(), gen);
+  generate(inC.begin(), inC.end(), gen);
+  generate(inD.begin(), inD.end(), gen);
+  generate(inSel.begin(), inSel.end(), gen);
+  circuit = Circuit(4 * wordLength + 2, wordLength);
+  auto selector = Selector({inA, inB, inC, inD}, inSel);
+  selector.build(circuit);
+  cout << "Word(selector).size() = " << Word(selector).size() << '\n';
+  circuit.updateOutputs(selector);
+  vals = valA;
+  vals.insert(vals.end(), valB.begin(), valB.end());
+  vals.insert(vals.end(), valC.begin(), valC.end());
+  vals.insert(vals.end(), valD.begin(), valD.end());
+  vals.insert(vals.end(), valSel.begin(), valSel.end());
+  output = circuit.evaluate(vals);
+  cout << "output: { ";
+  for (auto o : output)
+    cout << o << ' ';
+  cout << "}\n";
+  assert (output == valC);
+  cout << "circuit size: " << circuit.size() << '\n';
+}
+
+void sep() {
+  cout << string(70, '-') << '\n';
+}
+
 int main() {
   testQR();
-  cout << string(70, '-') << '\n';
+  sep();
   testGarbler();
+  sep();
+  testModule();
 }
