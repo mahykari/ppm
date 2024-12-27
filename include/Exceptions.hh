@@ -33,4 +33,10 @@ public:
     : std::runtime_error("Outdated class: " + className) {}
 };
 
+class ConfigBehaviorUndefined : public std::runtime_error {
+public:
+  ConfigBehaviorUndefined()
+    : std::runtime_error("Config behavior undefined") {}
+};
+
 #endif
