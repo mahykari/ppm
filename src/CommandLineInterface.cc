@@ -41,6 +41,8 @@ void CLI::parse(int argc, char* argv[]) {
         this->system = std::make_unique<SweepSystem>();
       else if (sys_name == "jump")
         this->system = std::make_unique<JumpSweepSystem>(systemStateLength);
+      else if (sys_name == "timekeeper")
+        this->system = std::make_unique<Timekeeper>();
       else {
         printf("Error: unknown system name\n");
         exit(EXIT_FAILURE);
