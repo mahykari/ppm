@@ -11,9 +11,9 @@ techmap; opt
 abc -g NAND
 write_verilog -selected synth.v
 write_blif -top SpecSyn -icells -noalias -conn -impltf synth.blif
-show -format png
+# show -format png
 select -clear
-exit
+# exit
 
 # Test equivalence of spec and its synthesised version.
 read_verilog SPEC_FILE
