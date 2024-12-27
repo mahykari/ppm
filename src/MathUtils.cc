@@ -124,3 +124,11 @@ void initPrimes() {
     mpz_mul_ui(ub, ub, 2);
   }
 }
+
+std::vector<bool> toBinary(unsigned n, unsigned length) {
+  std::vector<bool> word(length);
+  for (unsigned i = 0; i < length; i++) {
+    word[i] = (n >> i) & 1;
+  }
+  return word;
+}
