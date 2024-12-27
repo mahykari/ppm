@@ -3,6 +3,7 @@
 #include "QuadraticResidueGroup.hh"
 #include "BigInt.hh"
 #include "Sha512YaoGarbler.hh"
+#include "MathUtils.hh"
 #include "StringUtils.hh"
 #include "Module.hh"
 #include "SpecToCircuitConverter.hh"
@@ -147,19 +148,6 @@ void testModule() {
   cout << "}\n";
   assert (output == valC);
   cout << "circuit size: " << circuit.size() << '\n';
-}
-
-// Copy from https://stackoverflow.com/a/17299623/15279018.
-template <typename T>
-std::vector<T> flatten(const std::vector<std::vector<T>>& v) {
-  std::size_t total_size = 0;
-  for (const auto& sub : v)
-    total_size += sub.size();
-  std::vector<T> result;
-  result.reserve(total_size);
-  for (const auto& sub : v)
-    result.insert(result.end(), sub.begin(), sub.end());
-  return result;
 }
 
 void testSpec2Circ() {
