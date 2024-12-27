@@ -20,7 +20,7 @@ int main (int argc, char *argv[]) {
   auto cli = CommandLineInterface();
   cli.parse(argc, argv);
 
-  SpecToCircuitConverter converter(cli.specFileName);
+  YosysConverter converter(cli.specFileName);
   auto circuit = converter.convert();
 
   SetUp();
