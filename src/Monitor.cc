@@ -4,6 +4,7 @@
 #include "BM.hh"
 #include "LWY.hh"
 #include "Circuit.hh"
+#include "Shake256YaoGarbler.hh"
 #include "CommandLineInterface.hh"
 #include "SpecToCircuitConverter.hh"
 
@@ -26,7 +27,7 @@ int main (int argc, char *argv[]) {
   SetUp();
   auto messageHandler = MessageHandler(L::SYSTEM_PORT, L::MONITOR_PORT);
 
-  auto primeModulus = BigInt(SAFE_PRIMES[cli.securityParameter]);
+  BigInt primeModulus = getSafePrime(cli.securityParameter);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
 
   auto monitorMemory = L::MonitorMemory {
@@ -36,12 +37,14 @@ int main (int argc, char *argv[]) {
   auto gateCount =
     circuit.size() - (cli.monitorStateLength + cli.systemStateLength);
 
+  auto garbler = Shake256YaoGarbler();
+
   auto parameters = L::ParameterSet {
     .gateCount = gateCount,
     .monitorStateLength = cli.monitorStateLength,
     .systemStateLength = cli.systemStateLength,
     .group = QuadraticResidueGroup(primeModulus),
-    .garbler = Sha512YaoGarbler(),
+    .garbler = &garbler,
     .securityParameter = cli.securityParameter
   };
 
