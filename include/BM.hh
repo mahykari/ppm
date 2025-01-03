@@ -16,6 +16,7 @@ namespace BM {
 
   class ParameterSet {
   public:
+    unsigned securityParameter;
     QuadraticResidueGroup group;
   };
 
@@ -128,6 +129,7 @@ namespace BM {
     StatePtr next() override;
   private:
     std::string encrypt(const std::string& message, const std::string& key);
+    std::string padNumber(BigInt n);
   };
 
   class SendEncryptedMessages : public SenderState {
@@ -183,6 +185,7 @@ namespace BM {
     DecryptChosenMessage(ParameterSet* parameters, ChooserMemory* memory);
     StatePtr next() override;
   private:
+    std::string padNumber(BigInt n);
     std::string decrypt(const std::string& message, const std::string& key);
   };
 

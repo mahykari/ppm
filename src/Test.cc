@@ -3,6 +3,7 @@
 #include "QuadraticResidueGroup.hh"
 #include "BigInt.hh"
 #include "Sha512YaoGarbler.hh"
+#include "Shake256YaoGarbler.hh"
 #include "MathUtils.hh"
 #include "StringUtils.hh"
 #include "Module.hh"
@@ -33,7 +34,7 @@ void testQR() {
     toString(result).c_str());
 }
 
-void testGarbler() {
+void testGarblerSha512() {
   auto garbler = Sha512YaoGarbler();
   LabelPair leftp = {"012", "345"};
   LabelPair rightp = {"678", "9ab"};
@@ -65,6 +66,33 @@ struct IncGenerator {
   IncGenerator() = default;
   unsigned operator()() { return current_++; }
 };
+
+void testGarblerShake256() {
+  auto garbler = Shake256YaoGarbler();
+  LabelPair leftp = {"012", "345"};
+  LabelPair rightp = {"678", "9ab"};
+  LabelPair outp = {"cde", "f01"};
+
+  printf(
+    "Using leftp=[%s,%s], rightp=[%s,%s], outp=[%s,%s]:\n",
+    leftp[0].c_str(), leftp[1].c_str(),
+    rightp[0].c_str(), rightp[1].c_str(),
+    outp[0].c_str(), outp[1].c_str()
+  );
+
+  auto gate =
+    garbler.enc(leftp, rightp, outp);
+  printf(
+    "- gate=[%s,%s,%s,%s]\n",
+    gate[0].c_str(), gate[1].c_str(),
+    gate[2].c_str(), gate[3].c_str()
+  );
+
+  auto label =
+    garbler.dec(leftp[1], rightp[0], gate);
+  assert(label == outp[1]);
+  printf("- label=%s\n", label.c_str());
+}
 
 unsigned IncGenerator::current_ = 0;
 
@@ -233,13 +261,17 @@ void sep() {
 }
 
 int main() {
+  sep();
   testQR();
   sep();
-  testGarbler();
+  testGarblerSha512();
+  sep();
+  testGarblerShake256();
   sep();
   testModule();
   sep();
   testSpec2Circ();
   sep();
   testSpec2CircYosys();
+  sep();
 }

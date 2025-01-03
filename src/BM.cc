@@ -139,6 +139,7 @@ P::EncryptMessages::EncryptMessages(
 std::string P::EncryptMessages::encrypt(
   const std::string& message, const std::string& key)
 {
+  assert (message.length() <= key.length());
   size_t textLen = message.length();
   std::string encryptedMessage(textLen, '0');
   for (size_t i = 0; i < textLen; i++) {
@@ -148,6 +149,12 @@ std::string P::EncryptMessages::encrypt(
   return encryptedMessage;
 }
 
+std::string P::EncryptMessages::padNumber(BigInt number) {
+  auto labelStr = toString(number, P::MSG_NUM_BASE);
+  auto targetLength = this->parameters->securityParameter / 4;
+  return std::string(targetLength - labelStr.size(), '0') + labelStr;
+}
+
 StatePtr P::EncryptMessages::next() {
   printf("I: EncryptMessages::next\n");
   auto group = this->parameters->group;
@@ -155,9 +162,9 @@ StatePtr P::EncryptMessages::next() {
     auto randomExponent = this->parameters->group.randomExponent();
     this->memory->encryptionElements[i] = toString(
       group.exp(group.baseGenerator, randomExponent), P::MSG_NUM_BASE);
-    auto expdPubKey = toString(
-      group.exp(this->memory->publicKeys[i], randomExponent), P::MSG_NUM_BASE);
-    auto hashedExpdPubKey = hashSha512(expdPubKey);
+    auto expdPubKey = group.exp(this->memory->publicKeys[i], randomExponent);
+    auto padExpPubKey = this->padNumber(expdPubKey);
+    auto hashedExpdPubKey = hashShake256(padExpPubKey);
     auto message = this->memory->messages[i];
     this->memory->encryptedMessages[i] =
       this->encrypt(message, hashedExpdPubKey);
@@ -291,6 +298,7 @@ P::DecryptChosenMessage::DecryptChosenMessage(
 std::string P::DecryptChosenMessage::decrypt(
   const std::string& message, const std::string& key)
 {
+  assert (message.length() <= key.length());
   size_t textLen = message.length();
   std::string decryptedMessage(textLen, '0');
   for (size_t i = 0; i < textLen; i++) {
@@ -300,13 +308,20 @@ std::string P::DecryptChosenMessage::decrypt(
   return decryptedMessage;
 }
 
+std::string P::DecryptChosenMessage::padNumber(BigInt number) {
+  auto labelStr = toString(number, P::MSG_NUM_BASE);
+  auto targetLength = this->parameters->securityParameter / 4;
+  return std::string(targetLength - labelStr.size(), '0') + labelStr;
+}
+
 StatePtr P::DecryptChosenMessage::next() {
   printf("I: DecryptChosenMessage::next\n");
   auto group = this->parameters->group;
   auto encryptionElement = BigInt(
     this->memory->encryptionElement, P::MSG_NUM_BASE);
   auto encryptionKey = group.exp(encryptionElement, this->memory->key);
-  auto hashedEncKey = hashSha512(toString(encryptionKey, P::MSG_NUM_BASE));
+  auto padEncKey = this->padNumber(encryptionKey);
+  auto hashedEncKey = hashShake256(padEncKey);
   auto& encryptedMessage = this->memory->encryptedMessage;
   this->memory->chosenMessage = this->decrypt(encryptedMessage, hashedEncKey);
   // printf("D: decrypted message %s\n", this->memory->chosenMessage.c_str());

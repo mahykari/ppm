@@ -4,7 +4,7 @@
 
 #include "BigInt.hh"
 #include "QuadraticResidueGroup.hh"
-#include "Sha512YaoGarbler.hh"
+#include "YaoGarbler.hh"
 
 #include "Circuit.hh"
 #include "MonitorableSystem.hh"
@@ -13,6 +13,8 @@
 #include "State.hh"
 
 #include "BM.hh"
+
+#include "Timer.hh"
 
 // Original protocol was proposed by Liu, Wang, and Yiu
 // in the following paper:
@@ -37,7 +39,7 @@ namespace LWY {
 
     // * Encryption parameters
     QuadraticResidueGroup group;
-    Sha512YaoGarbler garbler;
+    YaoGarbler* garbler;
     unsigned securityParameter;
     unsigned inputLength();
   };
@@ -55,7 +57,7 @@ namespace LWY {
     // receivedMessage stores the message received for that state.
     std::string receivedMessage;
     // for timing purposes.
-    std::chrono::system_clock::time_point lastTimePoint;
+    Timer timer;
   };
 
   class SystemState : public State {
@@ -78,7 +80,7 @@ namespace LWY {
     std::array<BigInt, 2> flagBitLabels;
     bool isFirstRound = true;
     std::string receivedMessage;
-    std::chrono::system_clock::time_point lastTimePoint;
+    Timer timer;
   };
 
   class MonitorState : public State {
@@ -169,7 +171,11 @@ namespace LWY {
     std::string message() override;
     StatePtr next() override;
   private:
-    std::vector<BigInt> systemInputLabels();
+    // Certain methods, such as the following,
+    // are annotated with a '_Timed' suffix.
+    // This is a *TEMPORARY* measure to signal
+    // these methods are being timed.
+    std::vector<BigInt> systemInputLabels_Timed();
     std::array<BigInt, 2> flagBitLabels();
   };
 
@@ -180,7 +186,7 @@ namespace LWY {
     std::string message() override;
     StatePtr next() override;
   private:
-    std::array<BigInt, 2> flagBitLabels();
+    std::array<BigInt, 2> flagBitLabels_Timed();
   };
 
   class SystemObliviousTransfer : public SystemState {
@@ -196,7 +202,7 @@ namespace LWY {
     std::unique_ptr<BM::ParameterSet> OTParameters;
     std::unique_ptr<BM::SenderMemory> senderMemory;
     StatePtr state;
-    void setOTMessages();
+    void setOTMessages_Timed();
     unsigned counter;
   };
 
@@ -244,8 +250,8 @@ namespace LWY {
     std::string message() override;
     StatePtr next() override;
   private:
-    std::vector<BigInt> generateInWireLabels();
-    void shuffleCircuit();
+    std::vector<BigInt> generateInWireLabels_Timed();
+    void shuffleCircuit_Timed();
   };
 
   class RecvGarbledGates : public MonitorState {
@@ -292,7 +298,7 @@ namespace LWY {
     StatePtr next() override;
   private:
     std::string padLabel(BigInt label);
-    std::vector<unsigned> getUnshuffling();
+    std::vector<unsigned> getUnshuffling_Timed();
     void evaluateDriverLabels();
   };
 

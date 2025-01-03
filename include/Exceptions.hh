@@ -39,4 +39,16 @@ public:
     : std::runtime_error("Config behavior undefined") {}
 };
 
+class InvalidPrimeIndex : public std::runtime_error {
+public:
+  InvalidPrimeIndex()
+    : std::runtime_error("Invalid prime index") {}
+};
+
+class BadTimerCallSequence : public std::runtime_error {
+public:
+  BadTimerCallSequence()
+    : std::runtime_error("Bad timer call sequence") {}
+};
+
 #endif

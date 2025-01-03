@@ -3,9 +3,11 @@
 #include <sstream>
 #include <iomanip>
 #include <chrono>
+#include <cassert>
 #include <gmp.h>
 #include <openssl/evp.h>
 #include "MathUtils.hh"
+#include "Exceptions.hh"
 
 namespace {
   class OpenSSLFree {
@@ -20,6 +22,11 @@ namespace {
   class Sha512Error : public std::runtime_error {
   public:
     Sha512Error() : std::runtime_error("SHA-512 failed") {}
+  };
+
+  class Shake256Error : public std::runtime_error {
+  public:
+    Shake256Error() : std::runtime_error("SHAKE-256 failed") {}
   };
 
   class InvalidHexCharacter : public std::runtime_error {
@@ -57,6 +64,33 @@ std::string hashSha512(const std::string& s) {
 
   std::stringstream outputStream;
   for(unsigned int i = 0; i < hashLength; i++)
+    outputStream
+      << std::hex << std::setw(2) << std::setfill('0')
+      << (int) hash[i];
+
+  return outputStream.str();
+}
+
+std::string hashShake256(const std::string& s, size_t len) {
+  OpenSSLPointer context(EVP_MD_CTX_new());
+
+  if(context.get() == nullptr)
+    throw Sha512Error();
+
+  if (!EVP_DigestInit_ex(context.get(), EVP_shake256(), nullptr))
+    throw Shake256Error();
+
+  if (!EVP_DigestUpdate(context.get(), s.c_str(), s.length()))
+    throw Shake256Error();
+
+  size_t outputLength = (len == 0) ? s.length() : len;
+  // Overallocating to prevent ending character problems.
+  auto hash = std::make_unique<unsigned char[]>(outputLength + 5);
+  if (!EVP_DigestFinalXOF(context.get(), hash.get(), outputLength))
+    throw Shake256Error();
+
+  std::stringstream outputStream;
+  for (size_t i = 0; i < outputLength; i++)
     outputStream
       << std::hex << std::setw(2) << std::setfill('0')
       << (int) hash[i];
@@ -122,6 +156,22 @@ void initPrimes() {
     mpz_clear(p);
     mpz_set(lb, ub);
     mpz_mul_ui(ub, ub, 2);
+  }
+}
+
+mpz_class getSafePrime(size_t i) {
+  if (i <= N_SAFEPRIMES) {
+    auto p = mpz_class(SAFE_PRIMES[i]);
+    assert (p != -1);
+    return p;
+  } else {
+    switch (i) {
+      case 1536: return mpz_class(MODP_1536_PRIME, 16);
+      case 2048: return mpz_class(MODP_2048_PRIME, 16);
+      case 3072: return mpz_class(MODP_3072_PRIME, 16);
+      case 4096: return mpz_class(MODP_4096_PRIME, 16);
+      default: throw InvalidPrimeIndex();
+    }
   }
 }
 
