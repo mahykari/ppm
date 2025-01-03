@@ -11,4 +11,4 @@ cp synth.ys temp.ys
 sed -i "s|SPEC_FILE|$1|" temp.ys
 
 # Run yosys
-yosys temp.ys
+yosys temp.ys > ./yosys.log 2>&1
