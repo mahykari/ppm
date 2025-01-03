@@ -159,6 +159,22 @@ void initPrimes() {
   }
 }
 
+mpz_class getSafePrime(size_t i) {
+  if (i <= N_SAFEPRIMES) {
+    auto p = mpz_class(SAFE_PRIMES[i]);
+    assert (p != -1);
+    return p;
+  } else {
+    switch (i) {
+      case 1536: return mpz_class(MODP_1536_PRIME, 16);
+      case 2048: return mpz_class(MODP_2048_PRIME, 16);
+      case 3072: return mpz_class(MODP_3072_PRIME, 16);
+      case 4096: return mpz_class(MODP_4096_PRIME, 16);
+      default: throw InvalidPrimeIndex();
+    }
+  }
+}
+
 std::vector<bool> toBinary(unsigned n, unsigned length) {
   std::vector<bool> word(length);
   for (unsigned i = 0; i < length; i++) {
