@@ -2,18 +2,27 @@
 #define COMMAND_LINE_INTERFACE_HH
 
 #include <memory>
+#include <map>
 #include "MonitorableSystem.hh"
 
-struct CommandLineInterface {
+struct ParameterSet {
   unsigned securityParameter;
   unsigned monitorStateLength;
   unsigned systemStateLength;
-  unsigned gateCount;
+};
+
+struct CommandLineInterface {
+  CommandLineInterface(int argc, char* argv[]);
+  int argc;
+  char** argv;
+
+  ParameterSet parameters;
   std::unique_ptr<MonitorableSystem> system;
   std::string specFileName;
 
-  void usage(char* execname);
-  void parse(int argc, char* argv[]);
+  void usage();
+  void parse();
+  std::map<std::string, std::string> argMap();
 };
 
 #endif
