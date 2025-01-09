@@ -125,6 +125,7 @@ StatePtr P::RecvLabels::next() {
   this->memory->timer.pause();
   printf("D:   labels parsed, exponents generated in %f ms\n",
          this->memory->timer.display());
+  fflush(stdout);
   return std::make_unique<P::GenerateGarbledGates>(
     this->parameters, this->memory);
 }
@@ -179,6 +180,10 @@ void P::GenerateGarbledGates::garble() {
   // For all output gates (including the one for the flag bit),
   // exponents picked for the next round are used.
   for (unsigned i = 0; i < gateCount; i++) {
+    if (i % 10000 == 0 and i > 0) {
+      printf("D:   garbling gate %d\n", i);
+      fflush(stdout);
+    }
     auto leftLabels = this->expLabel(
       inWireLabels[2 * i], this->memory->garblingExponents);
     auto rightLabels = this->expLabel(
@@ -210,6 +215,7 @@ void P::GenerateGarbledGates::garble() {
 
 StatePtr P::GenerateGarbledGates::next() {
   printf("I: GenerateGarbledGates::next\n");
+  fflush(stdout);
   // All rounds, other than the first round,
   // start from this state.
   // So, this timer is not reset until the next round;
@@ -269,6 +275,8 @@ std::vector<BigInt> P::SendSystemInputLabels::systemInputLabels_Timed() {
     auto driverLabel = this->memory->driverLabels[offset + i];
     labels[i] = group.exp(driverLabel, exponent);
   }
+  printf("D:   system input labels sent\n");
+  fflush(stdout);
   timer.pause();
   return labels;
 }
@@ -373,6 +381,7 @@ std::string P::SystemObliviousTransfer::message() {
 
 StatePtr P::SystemObliviousTransfer::next() {
   printf("I: SystemObliviousTransfer::next\n");
+  fflush(stdout);
   if (this->counter == this->parameters->monitorStateLength)
     return std::make_unique<P::RecvFlagBit>(this->parameters, this->memory);
 
@@ -401,6 +410,7 @@ StatePtr P::RecvFlagBit::next() {
   bool flagBit = std::stoi(message);
   auto& timer = this->memory->timer;
   printf("D: ==== round duration: %f ms ====\n", timer.display());
+  fflush(stdout);
   if (flagBit)
     return std::make_unique<P::SystemDone>(this->parameters, this->memory);
   else
@@ -433,6 +443,7 @@ StatePtr P::InitMonitor::next() {
 
 StatePtr P::GenerateDriverLabels::next() {
   printf("I: GenerateDriverLabels::next\n");
+  fflush(stdout);
   auto& timer = this->memory->timer;
   timer.start();
   auto& group = this->parameters->group;
@@ -450,6 +461,7 @@ StatePtr P::GenerateDriverLabels::next() {
     driverLabels[offset + i] = driverLabels[i];
   timer.pause();
   printf("D:   driver labels generated in %f ms\n", timer.display());
+  fflush(stdout);
   return std::make_unique<P::GenerateInWireKeys>(
     this->parameters, this->memory);
 }
@@ -474,7 +486,7 @@ bool P::SendLabels::isSend() {
 }
 
 template <class T>
-void testIdx(std::vector<T> vec, unsigned idx) {
+void testIdx(const std::vector<T>& vec, unsigned idx) {
   assert (idx < vec.size());
 }
 
@@ -491,8 +503,12 @@ std::vector<BigInt> P::SendLabels::generateInWireLabels_Timed() {
   // For gate G, ingoing wires are labelled as follows:
   // Left: (Driver label of G.leftInput) ^ (Key of G.leftInput)
   // Right: Same, but for G.rightInput.
-
+  printf("D:   generating in-wire labels for %u gates\n", gateCount);
   for (unsigned i = 0; i < gateCount; i++) {
+    if (i % 10000 == 0 and i > 0) {
+      printf("D:   %u gates processed\n", i);
+      fflush(stdout);
+    }
     auto gate = static_cast<Gate*>(drivers[offset + i]);
     assert (gate != nullptr);
     auto indexLeft = 2 * i;
@@ -513,6 +529,7 @@ std::vector<BigInt> P::SendLabels::generateInWireLabels_Timed() {
   }
   timer.pause();
   printf("D:   in-wire labels generated in %f ms\n", timer.display());
+  fflush(stdout);
   return inWireLabels;
 }
 
@@ -542,6 +559,8 @@ std::string P::SendLabels::message() {
   for (unsigned i = 0; i < this->parameters->gateCount; i++) {
     auto driver = this->memory->shuffledCircuit[offset + i];
     auto index = 2 * (driver->id - offset);
+    testIdx(inWireLabels, index);
+    testIdx(inWireLabels, index + 1);
     auto labelLeft = inWireLabels[index];
     auto labelRight = inWireLabels[index + 1];
     ss << toString(labelLeft, P::MSG_NUM_BASE) << ' ';
@@ -717,6 +736,10 @@ void P::EvaluateCircuit::evaluateDriverLabels() {
   auto& timer = this->memory->timer;
   timer.resume();
   for (unsigned i = 0; i < this->parameters->gateCount; i++) {
+    if (i % 10000 == 0 and i > 0) {
+      printf("D:   evaluating gate %d\n", i);
+      fflush(stdout);
+    }
     auto gate = static_cast<Gate*>(drivers[offset + i]);
     auto leftLabel = this->parameters->group.exp(
       evaluatedDriverLabels[gate->inputLeft],
@@ -740,6 +763,7 @@ void P::EvaluateCircuit::evaluateDriverLabels() {
 
 StatePtr P::EvaluateCircuit::next() {
   printf("I: EvaluateCircuit::next\n");
+  fflush(stdout);
   this->evaluateDriverLabels();
   return std::make_unique<P::SendFlagBit> (this->parameters, this->memory);
 }
@@ -767,6 +791,7 @@ StatePtr P::SendFlagBit::next() {
   auto& timer = this->memory->timer;
   printf("I: ==== round duration: %f ms ====\n", timer.display());
   timer.reset();
+  fflush(stdout);
   if (this->getFlagBit())
     return std::make_unique<P::FaultObserved> (
       this->parameters, this->memory);

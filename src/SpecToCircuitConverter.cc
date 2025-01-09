@@ -306,6 +306,7 @@ Circuit YosysConverter::convert() {
 void YosysConverter::specToBlif() {
   // For now, specFileName doesn't matter.
   printf("I: parsing spec file %s...\n", this->specFileName.c_str());
+  fflush(stdout);
   std::string specParserName = "./YosysParser.sh";
   pid_t pid = fork();
   assert (pid >= 0);
@@ -332,6 +333,7 @@ void YosysConverter::specToBlif() {
 void YosysConverter::blifToCircuit() {
   std::string blifFileName = "synth.blif";
   printf("I: parsing BLIF file %s...\n", blifFileName.c_str());
+  fflush(stdout);
   BlifParser parser(blifFileName);
   parser.parse(this->circuit);
 }
@@ -352,6 +354,7 @@ void BlifParser::parse(Circuit& circuit) {
     if (line.starts_with(".outputs")) parseOutputs(line);
   }
   printf("D: inputs and outputs parsed.\n");
+  fflush(stdout);
 
   // Now we should reshape the circuit to be of proper size.
   circuit = Circuit(
@@ -364,18 +367,21 @@ void BlifParser::parse(Circuit& circuit) {
   this->wireIndices["$false"] = zero;
   this->wireIndices["$true"] = one;
   printf("D: circuit initialized.\n");
+  fflush(stdout);
   // Second, we parse connections.
   unsigned connCounter = 0;
   for (auto& line : lines) {
     if (line.starts_with(".conn")) { parseConnection(line); connCounter++; }
   }
   printf("D: connections (#%u) parsed.\n", connCounter);
+  fflush(stdout);
   // Lastly, we parse gates.
   unsigned gateCounter = 0;
   for (auto& line : lines) {
     if (line.starts_with(".subckt")) { parseGate(line); gateCounter++; };
   }
   printf("D: gates (#%u) parsed.\n", gateCounter);
+  fflush(stdout);
   // Now we can build the circuit.
   buildCircuit(circuit);
   // Now we update the circuit outputs.
@@ -404,6 +410,7 @@ void BlifParser::parse(Circuit& circuit) {
     printf("%d ", out);
   printf("\n");
   printf("D: circuit size after identity: %d\n", circuit.size());
+  fflush(stdout);
   circuit.updateOutputs(id);
 }
 
