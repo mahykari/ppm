@@ -49,6 +49,8 @@ void Y::SystemInterface::next() {
   this->sync();
   this->memory->timer.resume();
   this->state = this->state->next();
+  printf("D: SystemInterface: time after state::next: %f ms\n",
+    this->memory->timer.display());
 }
 
 void Y::SystemInterface::run() {
@@ -94,9 +96,13 @@ void Y::RecvCircuit::parseCircuit(const std::string& circuitString) {
 StatePtr Y::RecvCircuit::next() {
   printf("I: RecvCircuit::next\n");
   fflush(stdout);
+  auto& timer = this->memory->timer;
   auto message = this->memory->receivedMessage;
-
   parseCircuit(message);
+
+  printf("D: ---- circuit parsing time: %f ms\n", timer.display());
+  timer.reset();
+  timer.start();
   return std::make_unique<InitMonitorStateLabels>
     (this->parameters, this->memory);
 }
@@ -258,6 +264,8 @@ Y::SystemObliviousTransfer::SystemObliviousTransfer(
   ParameterSet* parameters, SystemMemory* memory)
   : SystemState(parameters, memory)
 {
+  printf("D: ctor: starting OT timer...\n");
+  this->OTTimer.start();
   this->counter = 0;
   auto secParam = this->parameters->securityParameter;
   this->OTParameters = std::make_unique<BM::ParameterSet>(
@@ -270,6 +278,8 @@ Y::SystemObliviousTransfer::SystemObliviousTransfer(
   this->setOTMessages();
   this->state = std::make_unique<BM::InitSender>
     (this->OTParameters.get(), this->senderMemory.get());
+  printf("D: ctor: pausing OT timer...\n");
+  this->OTTimer.pause();
 }
 
 bool Y::SystemObliviousTransfer::isRecv() {
@@ -285,7 +295,13 @@ bool Y::SystemObliviousTransfer::isSend() {
 }
 
 std::string Y::SystemObliviousTransfer::message() {
-  return this->state->message();
+  printf("D: message: resuming OT timer...\n");
+  this->OTTimer.resume();
+  auto message = this->state->message();
+  printf("D: message: pausing OT timer...\n");
+  this->OTTimer.pause();
+  fflush(stdout);
+  return message;
 }
 
 void Y::SystemObliviousTransfer::setOTMessages() {
@@ -299,9 +315,11 @@ void Y::SystemObliviousTransfer::setOTMessages() {
 StatePtr Y::SystemObliviousTransfer::next() {
   printf("I: SystemObliviousTransfer::next\n");
   fflush(stdout);
-  if (this->counter == this->parameters->monitorStateLength)
+  if (this->counter == this->parameters->monitorStateLength) {
+    printf("I: ---- OT duration: %f ms\n", this->OTTimer.display());
     return std::make_unique<RecvFlagBit>(this->parameters, this->memory);
-
+  }
+  this->OTTimer.resume();
   if (not this->state) {
     this->counter++;
     this->setOTMessages();
@@ -311,6 +329,7 @@ StatePtr Y::SystemObliviousTransfer::next() {
     this->senderMemory->receivedMessage = this->memory->receivedMessage;
     this->state = this->state->next();
   }
+  this->OTTimer.pause();
   return std::make_unique<SystemObliviousTransfer> (std::move(*this));
 }
 

@@ -175,6 +175,7 @@ namespace Y {
     std::unique_ptr<BM::ParameterSet> OTParameters;
     std::unique_ptr<BM::SenderMemory> senderMemory;
     StatePtr state;
+    Timer OTTimer;
     void setOTMessages();
     unsigned counter;
   };
