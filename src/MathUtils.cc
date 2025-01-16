@@ -166,6 +166,8 @@ mpz_class getSafePrime(size_t i) {
     return p;
   } else {
     switch (i) {
+      case  768: return mpz_class( MODP_768_PRIME, 16);
+      case 1024: return mpz_class(MODP_1024_PRIME, 16);
       case 1536: return mpz_class(MODP_1536_PRIME, 16);
       case 2048: return mpz_class(MODP_2048_PRIME, 16);
       case 3072: return mpz_class(MODP_3072_PRIME, 16);
