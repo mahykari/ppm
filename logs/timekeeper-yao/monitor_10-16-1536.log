@@ -1,0 +1,588 @@
+I: parsing spec file timekeeper.v...
+skipping synthesis, BLIF file already exists.
+I: parsing BLIF file synth.blif...
+D: inputs and outputs parsed.
+D: circuit initialized.
+D: connections (#738) parsed.
+D: gates (#7056) parsed.
+D: outputs: 7640 7643 7646 7649 7652 7655 7658 7661 7664 7667 7670 7673 7676 7679 7682 7685 7688 7691 7694 7697 7700 7703 7706 7709 7712 7715 7718 7721 7724 7727 7730 7732 7638 
+D: circuit size: 7733
+D: adding identity gates for outputs...
+D: outputs after identity: 7766 7767 7768 7769 7770 7771 7772 7773 7774 7775 7776 7777 7778 7779 7780 7781 7782 7783 7784 7785 7786 7787 7788 7789 7790 7791 7792 7793 7794 7795 7796 7797 7798 
+D: circuit size after identity: 7799
+I: initializing safe primes...
+I: using prime modulus 2410312426921032588552076022197566074856950548502459942654116941958108831682612228890093858261341614673227141477904012196503648957050582631942730706805009223062734745341073406696246014589361659774041027169249453200378729434170325843778659198143763193776859869524088940195577346119843545301547043747207749969763750084308926339295559968882457872412993810129130294592999947926365264059284647209730384947211681434464714438488520940127459844288859336526896320919633919
+D:  sending message (size 0.000004 MB)
+I: InitMonitor::next
+D:  sending message (size 0.103541 MB)
+I: SendCircuit::next
+I: RecvGarbledGates::next
+I: RecvSystemInputLabels::next
+I: RecvFlagBitLabels::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: ce8f3cc6a40625bc5812e6205525879c687dacf928e39d3a8ed7a6805f8547203aef8ca5cee6e820011b486ec55cc769714befceb6650f2a5c234ce09ea638c9de28e418fcdd2623ac4d3363d417bf9b3090a7beefc78a177d9810730230d425f17d5612477db20fa209b43284330063f7a367bbca9f403be49bfda7d3226035425400d53792f0675a1d013ec35061f21e1def3132bc42cc16983ce12d1b7c19ad0d03ca5adc2b9b1fefe8207f17c51dfac5d558d8817d246c55e50e652cfe12
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: bdae4d389c7f8dfde4bac36b18d91039397f25238b8a39c5e919651ed6882f6c4b0daca52baad8726e610a4fa10c3627f9bd128813e371b00c65b23aae54735649a48c571b9b4c8bb5d673d15e9cd1de7de99a2f96bd591b820e48ba61727f7b8ddb24ecd4464259043eef1d16769b6551482207458f12ea04c4bd0c324a97a8385e8bb7cbc991e590b30da74591dc95386c0e58aaf3be17aa70a44d43a0ad77b8b52c2dde94fbdbf0f29011ede9293e1ca72a06e83e1a750688ba7a548f9206
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 40c84d88cac463455cbc355f22f44306b0a9eaaf08c4f643809b9776b80aebca9965362d49409669084415290d64804f00eba25d31de079b30d521c887317a490c6938c5f2f10087ed1e89da755345bbe68be6e0eea11841cfb7889679c47d267c6bb7b5dce8441301c9ee3e0954a7dfe5522f3b58d5a6b2fa7c20e5c63ff57ceea7ee222f315a5fe1c656eb8d531944dfc43154cdb3c4a310a60426c17d28308eff3d82db16177c4762fd90a0948f0c3382bcf816de12c3aa0b305d191df6c6
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 6ece368a1fe849e0d600eb7807bdd2d2869d0ab48b0f59eb15b36857bd96487a281f51994e2b47ec0c9a3e3a2ebfe83492629a52ae3c301c5a9d73bd990aeb91636625fe72891d69a34251be4eec107042d88f65884dadbc91a113a4bf8ab7910fc0ee77627b2bbd7985e08cb0cf93ba39713c5d0fbfea1b8af62b3203aac9d2dd3212eb771cdc0720f2bc35c7bb2685efd71cabc6f2344bd24db87cba8cb7f3861197c6e7ac910c4a706dc4a3a5a3a14ebbe024e9442ce1c6239eefbcbc1abb
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: c981cfb270c1f052873081ea9e337102888190bae1a026cf09fd3b4bcceeb98c661d334a43c1042c72a0c5684d597e6d3f313fb0ecdc7cb7fa7cea2c51af62762b2988dab6014965bfc419fab63194ef9e1011a0b0bb9a9772f6424afd288f99b86f8cf539feb36061a90b5d6cd613cfe70b74ab2da474d32a889bc698d57d845f61dccebcc6166343188516c496a4c30c72684d0021ec20c81a64b6fa35e34d9d6a8306d19675311ad166b3506c6a69d4674e6978472358d99420f030b830af
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 60dc3afa150945367bf12bf185b9c33288258a8bc193e2456c6f1fa69d55dcd8ffa895d5abda800304e760c25bad5cb96bcd4698f2e03c35704b1b4ac06a342263385b276b39656c70d10d4ef7a15c81a2c880aca405126ebe15573876882ff2464c684b7902de0cf8438bdd40ee786e5f3427528096a05578880d17b6fcb59e12a243328cdbcdb78163a236f5dfca981671ab86ec3142a45647f95351627cdfbac31b02bde6b0cfbc0b769cf768af1b4ac180797176c905c9b756effca49dc3
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: cf66c76297fd2a4e929aeba555b4365030fbf6bbdb0f5428693edbe67ce05c75b013fd5155f66c25593eef8458ff59ebb773e5ebfb34f907f3bc2a1f3167446d9b297f622bca5fe305b23ac97284457efc40426bf305372fb0db73abfe08f5b46c992c90d059de01f2367b9e4c107960df614fec55dd8b31fe0204a170195f5d2df26642918ee1ce6cb89c064d71958cd1e0ecf48b8419e12a88179fdc8f81f34383229963e1cd06a9cb62103554f12acdf982d0b434620b1dd98477cec8dbc3
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 61a6403e7e47cba43593609cd530066b22fceb48d86f1d43fbfae2f2c49156266fb9527fa4e9b16c1cfb40890b48f4fd585ef0e6dbe699b0d483b014a444a9d0890d1dfbeef783c25e0cfaaaf8312e37731fa8f76738782671ac47624b94ff2e9ea3ec7d7f030b21340447b7df4e12ebaa745d8f8429117eb00debbd57c77954dc3231a7dead320dfeb72e8080e2d6cdcbe8aa5489cc24785162e8c62a18ac1d88c799bc08e292958aee548e7cfdae6abb0afb385a162a17b4107a0ed21c3d7a
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 5d4422225f21a6ecd7fcf46f6556191092a028ead09e8fafefa29467839c1baed3cbba2ff3b65b77d59788dbb3918a44ac96a0a5c5948dd7afeb9d69cd367df100af398aabb39b587afad6a33c65d5ee94228c402aebefc0be1f130f73d9dd7b57f67c5b756af297d3879a01e1e8fa8e98cbe9a63b30972ffce49d857d2032054c1af9a53f8a6d97a6229235428719f09e223f823e4a5c5c4b087b96dea1510258afdbb11c545e4142ce660532f0b53e580a55f5534f3a811eece83537b606a0
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: aa8787e6d60221b9aad217f3c57a8b7163d4c5764ebea28e9905756b35d3e1ee8978261324eea97d3e836910152440beda6fe0fe3f8311c0ea26e34360fc43000a88ad7144454e94fed4bc127601a03d87208d5c52af4508acaafecb4376fc405cbc347ec9fc4b0285db74ae45923fb807f7c27252feb0aafab585cc344300a59c8b934ae50e6c1320c63db499c2649674c97a6cb545f6c45929d275cfa60ae9db84d451009151eccb50038dbd23523ab4b62c88afcdec538e95fb2d82dafd6e
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: ca4a83680d31afab992a451b9cc1947ea720b6520c06e130847ff53eaa9fe98744045621c3be2e2f4bbf26816462e4622b2a655b4efacbb1017f621fc09884d8cfa0e64fc0cceb6cb5f2c86616ff143d365383fe3fa2508e2a1b24495fd7fa4dc5bd5ba3f753482375589879f4265ada1440104f20098fe82d509c2b6a961164e0e4332ff20d955bf9e4f8f31b74814b22394c6da55d116a2fdfbe67226b54a28882e1db469b66b8b8b33b9bcb32d88ce08c8460bc89f93712ee780715203b2d
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 577f57d8c89cb918fc82602469153ac7c6dc7a99ba213c1e16f191e08d15e3c50aaca1c57bbeef2e7581d13ebef60b147399240a1806504eae324d1ab8da5a7b3af355939e45598805cdae12d92d535871573f7aa5f6162e6640e806a1b116f422645bb2c9cbad20b84dfdab46660cf500daa400b351731758c13c330258a473bf90cca086994168713a9e28fd381cec899313813291c08906d987130a0d5740f07f97fdc544cc1c296b75920fb7c097912db1a01a9770fe59f793aee61b37d7
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 9770aefa406cca27c830e65fabca42e077f71fa86bf75e99652dfe6afe2dc71f95d43469b589371f63ffe02136c2a6e1722a2d153fd9a5d742f1d5b7e4e13ca731d636c3ee1d552f4505c381fef703eb0034d04fb6cf8d9b05a8afb1f225b909062179b2dee4dca8386ab01fedac31981b89213d5b14b7b8dba726479ab33bb23740afde1c656fb40ad658da46b3ce9bceaf617fe2be9f42a03aca18b61e9e9d38474cbd399c228edbb2d179dcb2074fd40e687d8e375e82cb1ce44ef63d8d17
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: f6d4c076fc174cefe345136c55ecb1e87722702df5adf11b0cdf372ec76b385860c915c4d926027cf9fd9b85a51e08745b9b713566d7e56b31c8264a401a9e0108ad98a8730d7bf2311390cc59df3b0b81a2d410e7b996d919550b40e8da075553012a685b8fcff7ea8c4d3a17a512b260bdc09210cee02f86b96bc55bf9abdcd7bb8ff2082290aa55b2ce30397c2537f52664410308834c0e068ac57ae1c7bcfb52176c997be53b224225a3c8d2826aef3b34f90bf52324681262ac25e46293
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 1b115c5c885f7c548f37bf946b6210a3b1bc7d986f718fa53602146892645446d51f00a67b381b7c98651afe0b86ac07f3d1fb21c9da3cbc916e59dac1a3ad29739a821bd1b9e87af3575661d69898ce7e2ddf1caade2bcfd80e5ecbb823f620bd268aaf80a8cf0d59585a437a8a4c80cbd7a64631b6763eacde7ee98a5cafe4bb0e2ae91d26470bf8ed43f81121e3ac3c7a0a166d8eef63bf6ace0b617e0c5f69f1c37c553c6492dfe6f660d76f3110c6f1cdef9aede08b66a40ecf77d1d594
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: c30ed9386969f488ce6da5147b14c9ba4ad8fc569634f038fd930a4143157f2fa15d512dae48a4a51b644b25501c5cdccc2386dffd2ec48171fb4250d09ae5bf556d786a522b1ba99af8d2d1afdf7d02b10891028db39f2d0da29d9a7bd5ff6a1af9d330203beed45ec259f16d79669c78665abc76f9583a54d92b2e2fbef3a99ab9d3e303e51d223c34229796346be7ede10484c0c215f9fcece9e28bd40676b789ad83118de3825fec4502cc9a2c0ca338065ad54d17622b362abeb6f82de9
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 6646fbb092931d8bea8896e50b7ae5356bf8001886e7d88b8ac9922cff442c392317c3a5755445e01d3ddabc545e2155322b1b7968b68d7fec09319232ac915813d4f2c5c8324ed9a274807da2bb449dd04c89bd55a6f0c1e200121d947396534ee5e718ff50c42b381169c27141290cbdc2a6b87da47458e911295c3cde0a25e1798996e0a3550004637f1cea6c24bc76ce49b41aa6a31e9c7c21748696767beef5e242bd8ec29ebae62103c63ceaee892ae64a977fe05a7518574117a04ecd
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000383 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 1acdee5efdf5fa5d5c588fea4e07de3e127cee28bbdc04e9d79a3fba48429f6018df14d0d96d39b379a3cb7344a7ab4037f7d0ee18738b0749f92f12d89b20ae3080ee7bd24347ab523c064d21d3e12e61bcb7b5ee8e4207f606dd01f3cc01047f441d0291944fc9e0d7961852a71a86cd95bba9ff89c481325489cb50147995fed3b560a338282a357d367bcbc14e9378f62b25700207e4b5a62bb17ab40c8d8f7cd00c4867f7535c40cfc2c53d8ff3e767939a895f43e589f58b896e031499
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 75ac8b9408ebe8e44079004c3d9dbf11333c5a3189a582a1d2cdd6b820bbecf83cdc22168e275ee8dad18e8581624f270f9a83b96481bf7580a9011f479fab399d25ff69fff4b913c9fdbd76eaf1c8cae34131486afca2be60f21429e4c284625ca94f90351294806453eb2162824dcbd9de5c31e811a6a6cac392017cadafdb8edeff26b92f18c4208c2d91e5d39542919a57135719ee3087d4e8317382fb654c5ad86212ddd4bbc7cc8664fc6bbad6c48fa51b40d6d9935db95ea9237c89cf
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 561320c967d16dab340750bbb02bf284b5656122caa45e712f83df53d60d3d917ad4bd75115b4ff125c3451de9cf3d7a485a9121bdd7acd5f662c0963919eb0eec2eb019a905b43d463bfbc7058067e07557159bd7d4c16a14b043774a8ec455fadbdff24439386639c2c410eca133c2e004b2612a80f070b586a79cf8fbf57ead3625d0f75a4263a8873124361953b22de3194560eaf6ac7e70b5d4bab589fcef9ffc657b40d0ef61a513abac28474882ccfe0c22ada8a24d12c15457871d34
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 7f8a7237697ff7368b8beecc8095df18a70ebd165af585f82a4e17fa78d26f5662d74882b44261e97681e549c60fa94d05626f1c72d03c3b320abc8d514dfcaa49bedea7f26145bc218fba0b9bc10263353f5de5801f10d73ee58448d300b3d1d4256c3b51ebb43d3316eedc2cbe82ed829a20943a8157431ae14e58f0af4d4d3a429f1be14172e24b9829ce535184403f98eebd8d25604ca3d24bc52ba55192e95b72fb81d45099b7c4a23f1df006be11dac847b959f6509c866e74a61856db
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 15bd8c909a9156f3c797fd6dbc38f13146ae973267bca6d1f6d6166b51fc7189aa61284547f49bdd36cc374447c022d3c3719134808c8eac323c1bbcc532c2a65b8f62efe5cd9ce7306c97e06c06720568c128f9dc00a43841656d0d145254023c1acb774ea23a54dbf41fda05b54aeb975333460b1368845ba660d5f84b9651e56b67edec82aab7489f66304c63c0e9de322cd557aeeb6c289d48bb2a906f412b17c413df2a653d56725703ddbd7477e0412a0ddecdc4310f492c5c85fb806c
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: c3c58aace5511dd9430ec2ed9c4ac87fa2777f93602998b86994200c5e81d4c5e2e27c70b0c92af2e5bdaac27bd27ec47830374a06acbf38106eea4078312384acb4a9db511edf3464d7d0ffcde89b9b54a80a2477900664ae56b3fc09ea72242276eb9e0c51852f3631bc2e69586ed08501e278a04c8d3e6417749a7a72530a7d213de00f5953397335702565427f84ececc7422689ced26634a2c560c49cbf563ff37a82349555e8f75e60a0ff32c707e0809544e4e7317a998d1af2f4f1d8
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 2d7023d0ae07114ad26105ff5e50ac412983fe7809d37d34058d04430d64df8efa1969af594c0fb5852c38228b8ca17fb12d17a879c8cd74d3d5d47d5fbb2a69fc916e99e639570a343bcce635ef675191dd3a8357ea7247b15897bc157ee83b2acd855fc51d4a939b71b85a6cbb033cef55aa7f2ad9ecb1774e5c61b730776072a80b4831e514c36dd2c126e60bbaac67c397aef7013c0995c6b234dec6308f9d2f2a3a6ecf089f606aee17c816dc237adf64fdb114ee8b5c86afdbef797092
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 594ad4d6ef45f7548d2e9c72f21026c49279200fdcecae96f5a56d64df9ee21b36d4b46eb0198760d52a69a8a55500b93476a60c087d7e04adbd12d1952aacc2650386982fac98a16d274b30ec96cca48a95a1a68e0e72cb52117665f22d1b9ae22cbeabe26f7ba56fd64fa2942de7664c75cb0773769af93b969575a5e9b259e6caf93b4c6ccf18465ef0cae76285310c862f41d8f15ac484ee735868866dc69e045e4af216ba6d1578f2d3495870c3c0507679e518393fa482deca4084e251
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: eac88f9954a4dc7a270c33d2013fe25a208ae2c90cda6de65361956f238e41465c7d2170f4764a0a4fe4f092ae340499976996ce6f4210ed5f0367999ea988ede58a623323ac594cc121dc6aaef9e4ca83ffbb282514b64de7d1307d826323fbc3ca42ebaf213f5d5603580a83f12e4336502c1b49c29f8246296be9020d765b29aa1d07ca2ec3e613d1ffc9aa89e49562f2cbb8c362914f330393f96868d0650891a39127e7a2974d3784b80803c68befa11c3f30b25a0a0bc43b2eeca13764
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 41a3549ff47cb67fe9d1c703c3f20c459402d75b538c2c70645df6a6b483981efc72e7a257c112e8397efb0ca244a3ca8df29bf631dfdce2159ded78a1c8b92f4345e389c830d117790949a3f854550d52616db9c8e2749c398fe4923564ed0da7d10031efb0dd9a0984a65381eed75985560f0e54e7d8449cb9a68bd50b15a864d8851571f441b0cfb473fb966a7751a56df0fcd0611f5f9ea8163fd7684816eb09180d2af983c26a0ceaf7db346a33963392867f2b80ed96d1c39d300744b
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: a468729d8345fea4561613ca0b864573f4dcb4c1e23aa825535685a93596d774e072740ba243c6c0a9f4191f96ceddd9cd27bd268538508fc2f844f7c16a9f30678a2ddc26ef17d06776a97e4a7f1726d7272f7bb7c7307d0a833384a94e03208a2f0df009f495b9014c9abdf394bad4d9ac5a3bd57309f58af3b6e2678adab12f7f7787befa2a7e6c8fe76334f66eeeb75f733fb6f30377cb4e6e5005553fb6b04e557947347109f4d12d8d9a9a461305b328c945b5703099b88fa0ecedacc
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: e6ff10325df1132c950ae14a8e181eafdec3dbe587530b1fd2e5bd15d4037fd6c9a3198f2477ddede824960e7e61b5d26ef2176a4045283fef99883c4f38bb89371f658016c79250112f595300f42194af3e175abf2d8924dbd218317440ecc8b93c451fa6c2cec3d03a147e5dbeb1a73f1b7ae2b6ed23caed061351b26b74c4303a30763d45c068ac9b3321a13d4ca0650e2b3da7db3f967693f4d1b9aa4d9ffb6bbfbae59d21499cc1b1020f8ea630cf5f51392f4b04f652e35f9dd7a31dc7
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 7afd7b289237c98808292851309804e47fe91032ebb8746d29aa2a34e7703555120e309b06aceef1c505547457d0c1745b8d5c59d35140f44a0ee3b20db71c431fd3c5c35715da5439a0eaace1e4bc1d66024a8d7221a96635812ff1eb9e216d989bc70b62cc257fb9871a01c73a7703302709b16603da1ea5677949a297ca43b4d909d235c75b87efdc38030cf73afa7fc390f255a76839a92c5382dca4e4a61d5ee4d65d0a3d7d303880ce5ad736b8c64bc97ff00ae482dfd4d695feae54fd
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000383 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: b72e01dd20c51b8af3c36792cce7abff7960859067638cdb0d50156473ff0561d3ed88a49faa74f2e55f4e24bad2f087ae2d70bc354e4b6a45f451de3e260e653b6eb970fdaa0adc0b9ad8dd68f5896457e23002e092930b00929d3d6fcdf345214d970f241e556996371bfc6a79f1b40dbd4e6f56664032faab5328bb9728e068307ca9c2486217d5c389d5d14f2ff442a67c1cbf8f86bf3ae89aa27e1cb8b8da82b3bf2c5832d50c61058726e2ca8daee1e0a6645e46ee3d5264720590a62f
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: InitChooser::next
+I: MonitorObliviousTransfer::next
+I: RecvConstant::next
+D: received message: 10110baa84dc162677264ad60bd4b883e1ba998b7ae0915a2ef462517a83242beb36d40902b8dbf26a0209b3fb3104aaf4b01bd8b4dd471d3a3bf9619d05023a64e718bf57caa58f69c9e9faae9d14df15e7d6277f0482ae7affead92186249ae00a50c7a7503df2bf9588aeefe86eb941c3acad359de52718fd3730100080c0097446b8e9178bdaaab3881cd19d2c791afa0f0163bf30eb14a70eb4b3097a17cae63aec14e15c5ccbe226a7a599cd99eac6fb4b50e29ec9ccc66a3e56a2371a
+I: MonitorObliviousTransfer::next
+I: GeneratePublicKey::next
+D:  sending message (size 0.000384 MB)
+I: MonitorObliviousTransfer::next
+I: SendPublicKey::next
+I: MonitorObliviousTransfer::next
+I: RecvEncryptedMessages::next
+I: MonitorObliviousTransfer::next
+I: DecryptChosenMessage::next
+I: MonitorObliviousTransfer::next
+I: ChooserDone::next
+I: MonitorObliviousTransfer::next
+I: MonitorObliviousTransfer::next
+I: EvaluateCircuit::next
+D:  sending message (size 0.000001 MB)
+I: SendFlagBit::next
+I: ==== round duration: 2147.876709 ms ====
+I: MonitorCopyMonitorStateLabels::next
+I: RecvGarbledGates::next
+I: RecvSystemInputLabels::next
+I: RecvFlagBitLabels::next
+I: EvaluateCircuit::next
+D:  sending message (size 0.000001 MB)
+I: SendFlagBit::next
+I: ==== round duration: 1765.756714 ms ====
+I: MonitorCopyMonitorStateLabels::next
+I: RecvGarbledGates::next
+I: RecvSystemInputLabels::next
+I: RecvFlagBitLabels::next
+I: EvaluateCircuit::next
+D:  sending message (size 0.000001 MB)
+I: SendFlagBit::next
+I: ==== round duration: 1763.394287 ms ====
+I: FaultObserved::next
+I: MonitorDone::next
