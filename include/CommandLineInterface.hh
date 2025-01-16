@@ -5,10 +5,13 @@
 #include <map>
 #include "MonitorableSystem.hh"
 
+enum class ProtocolType { YAO, LWY };
+
 struct ParameterSet {
   unsigned securityParameter;
   unsigned monitorStateLength;
   unsigned systemStateLength;
+  ProtocolType protocol;
 };
 
 struct CommandLineInterface {
