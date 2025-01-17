@@ -41,6 +41,9 @@ void CLI::parse() {
   parameters.securityParameter = std::stoul(args["-security"]);
   parameters.monitorStateLength = std::stoul(args["-mslen"]);
   parameters.systemStateLength = std::stoul(args["-sslen"]);
+  auto protocolStr = args["-protocol"];
+  parameters.protocol =
+    protocolStr == "yao" ? ProtocolType::YAO : ProtocolType::LWY;
 
   if (args.contains("-spec"))
     specFileName = args["-spec"];

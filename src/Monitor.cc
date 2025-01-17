@@ -3,6 +3,7 @@
 #include "MessageHandler.hh"
 #include "BM.hh"
 #include "LWY.hh"
+#include "Y.hh"
 #include "Circuit.hh"
 #include "Shake256YaoGarbler.hh"
 #include "CommandLineInterface.hh"
@@ -31,10 +32,6 @@ int main (int argc, char *argv[]) {
   BigInt primeModulus = getSafePrime(params.securityParameter);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
 
-  auto monitorMemory = L::MonitorMemory {
-    .circuit = &circuit
-  };
-
   auto gateCount =
     circuit.size() - (params.monitorStateLength + params.systemStateLength);
 
@@ -44,18 +41,43 @@ int main (int argc, char *argv[]) {
 
   auto garbler = Shake256YaoGarbler();
 
-  auto parameters = L::ParameterSet {
-    .gateCount          = gateCount,
-    .monitorStateLength = params.monitorStateLength,
-    .systemStateLength  = params.systemStateLength,
-    .group              = QuadraticResidueGroup(primeModulus),
-    .garbler            = &garbler,
-    .securityParameter  = params.securityParameter
-  };
+  switch (params.protocol) {
+    case ProtocolType::YAO: {
+      auto monitorMemory = Y::MonitorMemory {
+        .circuit = &circuit
+      };
+      auto parameters = Y::ParameterSet {
+        .gateCount          = gateCount,
+        .monitorStateLength = params.monitorStateLength,
+        .systemStateLength  = params.systemStateLength,
+        .garbler            = &garbler,
+        .securityParameter  = params.securityParameter
+      };
+      auto interface = Y::MonitorInterface(
+        &parameters, &monitorMemory, &messageHandler);
+      interface.run();
+      break;
+    } case ProtocolType::LWY: {
+      auto monitorMemory = L::MonitorMemory {
+        .circuit = &circuit
+      };
+      auto parameters = L::ParameterSet {
+        .gateCount          = gateCount,
+        .monitorStateLength = params.monitorStateLength,
+        .systemStateLength  = params.systemStateLength,
+        .group              = QuadraticResidueGroup(primeModulus),
+        .garbler            = &garbler,
+        .securityParameter  = params.securityParameter
+      };
+      auto interface = L::MonitorInterface(
+        &parameters, &monitorMemory, &messageHandler);
+      interface.run();
+      break;
+    } default: {
+      printf("E: unknown protocol\n");
+      exit(EXIT_FAILURE);
+    }
+  }
 
-  auto interface = L::MonitorInterface(
-    &parameters, &monitorMemory, &messageHandler);
-
-  interface.run();
   exit(EXIT_SUCCESS);
 }
