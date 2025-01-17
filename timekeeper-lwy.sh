@@ -35,7 +35,7 @@ for comb in {3,10,30,100}_{8,16,32}; do
   IFS='_' read -r n w <<< "$comb"
   printf "I: parameters ndoors=%3d, wordlen=%2d\n" $n $w
 
-  for s in {128,256,1536,2048,3072,4096}; do
+  for s in {128,256,768,1024,1536,2048,3072,4096}; do
     printf "I:   security=%4d\n" $s
     # In case we want to skip this iteration,
     # both log files should exist.
@@ -52,11 +52,11 @@ for comb in {3,10,30,100}_{8,16,32}; do
     mslen=$((w * 2))
     sslen=$((4 * w * n))
     # Calling Monitor and System with the current combination
-    ./Monitor -security $s -mslen $mslen -sslen $sslen \
+    ./Monitor -proto lwy -security $s -mslen $mslen -sslen $sslen \
       -spec timekeeper.v -wordlen $w -ndoors $n \
       > ./logs/monitor_$n-$w-$s.log 2>&1 &
     mpid=$!
-    ./System -security $s -mslen $mslen -sslen $sslen \
+    ./System -proto lwy -security $s -mslen $mslen -sslen $sslen \
       -sys timekeeper -wordlen $w -ndoors $n \
       > ./logs/system_$n-$w-$s.log 2>&1 &
     spid=$!
