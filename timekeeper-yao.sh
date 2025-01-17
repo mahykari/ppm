@@ -35,8 +35,7 @@ for comb in {10,30,100}_{16,32}; do
   IFS='_' read -r n w <<< "$comb"
   printf "I: parameters ndoors=%3d, wordlen=%2d\n" $n $w
 
-  # for s in {128,256,1536,2048,3072,4096}; do
-  for s in {128,256,1536,2048}; do
+  # for s in {128,256,768,1024,1536,2048}; do
     printf "I:   security=%4d\n" $s
     # In case we want to skip this iteration,
     # both log files should exist.
