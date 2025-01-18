@@ -24,6 +24,6 @@ hierarchy -top SpecMiter
 select SpecMiter
 techmap; flatten; opt
 stat
-sat -prove trigger 0
+sat -timeout 15 -verify-no-timeout -prove trigger 0
 select -clear
 delete SpecMiter

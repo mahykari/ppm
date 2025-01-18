@@ -14,6 +14,7 @@ void MessageHandler::send(std::string message) {
   // printf("D: MessageHandler::send\n");
   // printf("D:   sending message: %s\n", message.c_str());
   zmq::message_t zmqMessage(message);
+  printf("D:  sending message (size %f MB)\n", (float) zmqMessage.size() / 1e6);
   this->sender.send(zmqMessage, zmq::send_flags::none);
   auto result = this->sender.recv(zmqMessage, zmq::recv_flags::none);
   assert (result);

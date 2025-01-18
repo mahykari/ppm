@@ -1,5 +1,5 @@
 module Spec
-   #(parameter NDOORS=3, parameter WORDLEN=10)
+   #(parameter NDOORS=`NDOORS, parameter WORDLEN=`WORDLEN)
     (monitor, system, out);
   input [2*WORDLEN-1:0] monitor;
   input [4*WORDLEN*NDOORS-1:0] system;

@@ -47,8 +47,17 @@ public:
   unsigned cntr = 0;
   std::vector<DoorUpdate> x;
   std::vector<bool> dataVec;
+  virtual void next() override;
+  virtual const std::vector<bool>& data() override;
+};
+
+class TimekeeperPlus : public Timekeeper {
+public:
+  TimekeeperPlus(unsigned N_EX, unsigned N_IN, unsigned WORDLEN);
+  TimekeeperPlus();
+
+  unsigned N_EX, N_IN;
   void next() override;
-  const std::vector<bool>& data() override;
 };
 
 #endif

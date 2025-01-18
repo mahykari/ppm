@@ -2,6 +2,7 @@
 #include <zmq.h>
 #include "BM.hh"
 #include "LWY.hh"
+#include "Y.hh"
 #include "MathUtils.hh"
 #include "MonitorableSystem.hh"
 #include "Shake256YaoGarbler.hh"
@@ -18,34 +19,67 @@ public:
 
 int main(int argc, char* argv[]) {
 
-  auto cli = CommandLineInterface();
-  cli.parse(argc, argv);
+  auto cli = CommandLineInterface(argc, argv);
+  cli.parse();
 
   SetUp();
 
   auto messageHandler = MessageHandler(L::MONITOR_PORT, L::SYSTEM_PORT);
 
-  BigInt primeModulus = getSafePrime(cli.securityParameter);
+  auto params = cli.parameters;
+  BigInt primeModulus = getSafePrime(params.securityParameter);
   printf("I: using prime modulus %s\n", primeModulus.get_str(10).c_str());
+
+  // ONE-TIME MESSAGE:
+  // System receives gateCount from Monitor,
+  // formatted as a decimal number.
+  unsigned gateCount = std::stoul(messageHandler.recv());
+  printf("I: received gate count %d\n", gateCount);
 
   auto garbler = Shake256YaoGarbler();
 
-  auto parameters = L::ParameterSet {
-    .gateCount = cli.gateCount,
-    .monitorStateLength = cli.monitorStateLength,
-    .systemStateLength = cli.systemStateLength,
-    .group = QuadraticResidueGroup(primeModulus),
-    .garbler = &garbler,
-    .securityParameter = cli.securityParameter
-  };
+  switch (params.protocol) {
+    case ProtocolType::YAO: {
+      auto circuit = Circuit(
+        params.monitorStateLength + params.systemStateLength,
+        params.monitorStateLength + 1);
 
-  auto systemMemory = L::SystemMemory {
-    .system = cli.system.get(),
-  };
+      auto monitorMemory = Y::SystemMemory {
+        .circuit = &circuit,
+        .system = cli.system.get(),
+      };
+      auto parameters = Y::ParameterSet {
+        .gateCount          = gateCount,
+        .monitorStateLength = params.monitorStateLength,
+        .systemStateLength  = params.systemStateLength,
+        .garbler            = &garbler,
+        .securityParameter  = params.securityParameter
+      };
+      auto interface = Y::SystemInterface(
+        &parameters, &monitorMemory, &messageHandler);
+      interface.run();
+      break;
+    } case ProtocolType::LWY: {
+      auto monitorMemory = L::SystemMemory {
+        .system = cli.system.get(),
+      };
+      auto parameters = L::ParameterSet {
+        .gateCount          = gateCount,
+        .monitorStateLength = params.monitorStateLength,
+        .systemStateLength  = params.systemStateLength,
+        .group              = QuadraticResidueGroup(primeModulus),
+        .garbler            = &garbler,
+        .securityParameter  = params.securityParameter
+      };
+      auto interface = L::SystemInterface(
+        &parameters, &monitorMemory, &messageHandler);
+      interface.run();
+      break;
+    } default: {
+      printf("E: unknown protocol\n");
+      exit(EXIT_FAILURE);
+    }
+  }
 
-  auto interface = L::SystemInterface(
-    &parameters, &systemMemory, &messageHandler);
-  // printf("D: running system interface\n");
-  interface.run();
   exit(EXIT_SUCCESS);
 }
