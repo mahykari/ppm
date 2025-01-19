@@ -11,7 +11,7 @@ CLI::CommandLineInterface(int argc, char* argv[])
 
 void CLI::usage() {
   printf(
-    "Usage: %s -security k -mslen m -sslen s -ngates n "
+    "Usage: %s -proto p -security k -mslen m -sslen s -ngates n "
     "[-sys sys_name] [-spec spec_name]\n", argv[0]);
   exit(EXIT_SUCCESS);
 }
