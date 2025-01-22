@@ -80,6 +80,10 @@ void CLI::parse() {
       } else {
         system = std::make_unique<TimekeeperPlus>();
       }
+    } else if (sysName == "locks") {
+      assert (args.contains("-nlocks"));
+      unsigned nLocks = std::stoul(args["-nlocks"]);
+      system = std::make_unique<Locks>(nLocks);
     } else {
       printf("Error: invalid system name\n");
       exit(EXIT_FAILURE);
