@@ -60,4 +60,20 @@ public:
   void next() override;
 };
 
+class Locks : public MonitorableSystem {
+public:
+  struct LockUpdate {
+    bool skip = true;
+    bool lock = false;
+  };
+
+  unsigned NLOCKS;
+  unsigned cntr = 0;
+  std::vector<LockUpdate> x;
+  std::vector<bool> dataVec;
+  Locks(unsigned NLOCKS);
+  virtual void next() override;
+  virtual const std::vector<bool>& data() override;
+};
+
 #endif

@@ -56,10 +56,10 @@ const std::vector<bool>& Timekeeper::data() {
   for (auto& door : x) {
     doors.push_back(
       flatten(std::vector<std::vector<bool>> {
-        toBinary(door.enteredA, WORDLEN),
-        toBinary(door. exitedA, WORDLEN),
+        toBinary(door. exitedB, WORDLEN),
         toBinary(door.enteredB, WORDLEN),
-        toBinary(door. exitedB, WORDLEN)
+        toBinary(door. exitedA, WORDLEN),
+        toBinary(door.enteredA, WORDLEN),
       } ) );
   }
   dataVec = flatten(doors);
@@ -104,4 +104,29 @@ void TimekeeperPlus::next() {
     x[N_EX + 1].enteredB = 6;
     x[N_EX + 1].exitedB = 5;
   }
+}
+
+Locks::Locks(unsigned NLOCKS) : NLOCKS(NLOCKS) {
+  x.resize(NLOCKS);
+}
+
+void Locks::next() {
+  if (NLOCKS < 1)
+    throw ConfigBehaviorUndefined();
+  cntr++;
+  x[0].skip = false;
+  x[0].lock = true;
+}
+
+const std::vector<bool>& Locks::data() {
+  std::vector<std::vector<bool>> locks;
+  for (auto& lock : x) {
+    locks.push_back(
+      flatten(std::vector<std::vector<bool>> {
+        toBinary(lock.lock, 1),
+        toBinary(lock.skip, 1),
+      } ) );
+  }
+  dataVec = flatten(locks);
+  return dataVec;
 }
