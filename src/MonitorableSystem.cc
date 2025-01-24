@@ -46,8 +46,8 @@ void Timekeeper::next() {
     x[2].exitedB = 1;
   } else {
     x[0].enteredA = 5;
-    x[1].exitedA = 3;
-    x[2].enteredB = 7;
+    x[0].exitedA = 3;
+    x[0].enteredB = 7;
   }
 }
 
@@ -56,10 +56,10 @@ const std::vector<bool>& Timekeeper::data() {
   for (auto& door : x) {
     doors.push_back(
       flatten(std::vector<std::vector<bool>> {
-        toBinary(door.enteredA, WORDLEN),
-        toBinary(door. exitedA, WORDLEN),
+        toBinary(door. exitedB, WORDLEN),
         toBinary(door.enteredB, WORDLEN),
-        toBinary(door. exitedB, WORDLEN)
+        toBinary(door. exitedA, WORDLEN),
+        toBinary(door.enteredA, WORDLEN),
       } ) );
   }
   dataVec = flatten(doors);
@@ -72,11 +72,12 @@ TimekeeperPlus::TimekeeperPlus(unsigned N_EX, unsigned N_IN, unsigned WORDLEN)
 TimekeeperPlus::TimekeeperPlus() : TimekeeperPlus(3, 3, 10) {}
 
 void TimekeeperPlus::next() {
-  if (N_EX < 3 or N_IN < 3 or WORDLEN < 8)
+  if (N_EX < 3 or WORDLEN < 8)
     throw ConfigBehaviorUndefined();
 
   cntr++;
-  if (cntr < 2) {
+  // if (cntr < 2) {
+  if (cntr < 1) {
     // External doors
     x[0].enteredA = 1;
 
@@ -86,11 +87,14 @@ void TimekeeperPlus::next() {
     x[2].exitedB = 1;
 
     // Internal doors
-    x[N_EX].enteredA = 2;
-    x[N_EX].exitedA = 1;
+    // Note that there might be no internal doors.
+    if (N_IN > 0) {
+      x[N_EX].enteredA = 2;
+      x[N_EX].exitedA = 1;
 
-    x[N_EX + 1].enteredB = 3;
-    x[N_EX + 1].exitedB = 2;
+      x[N_EX + 1].enteredB = 3;
+      x[N_EX + 1].exitedB = 2;
+    }
   } else {
     // External doors
     x[0].enteredA = 5;
@@ -98,10 +102,13 @@ void TimekeeperPlus::next() {
     x[2].enteredB = 7;
 
     // Internal doors
-    x[N_EX].enteredA = 4;
-    x[N_EX].exitedA = 3;
+    // Note that there might be no internal doors.
+    if (N_IN > 0) {
+      x[N_EX].enteredA = 4;
+      x[N_EX].exitedA = 3;
 
-    x[N_EX + 1].enteredB = 6;
-    x[N_EX + 1].exitedB = 5;
+      x[N_EX + 1].enteredB = 6;
+      x[N_EX + 1].exitedB = 5;
+    }
   }
 }
