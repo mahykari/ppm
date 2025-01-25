@@ -112,3 +112,28 @@ void TimekeeperPlus::next() {
     }
   }
 }
+
+Locks::Locks(unsigned NLOCKS) : NLOCKS(NLOCKS) {
+  x.resize(NLOCKS);
+}
+
+void Locks::next() {
+  if (NLOCKS < 1)
+    throw ConfigBehaviorUndefined();
+  cntr++;
+  x[0].skip = false;
+  x[0].lock = true;
+}
+
+const std::vector<bool>& Locks::data() {
+  std::vector<std::vector<bool>> locks;
+  for (auto& lock : x) {
+    locks.push_back(
+      flatten(std::vector<std::vector<bool>> {
+        toBinary(lock.lock, 1),
+        toBinary(lock.skip, 1),
+      } ) );
+  }
+  dataVec = flatten(locks);
+  return dataVec;
+}
