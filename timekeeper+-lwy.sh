@@ -31,12 +31,31 @@ mkdir -p logs
 
 # Run the protocol with the timekeeper spec and system.
 # The sets represent n_in (number of internal doors) and wordlen respectively.
+<<<<<<< Updated upstream
 
 for comb in {10,30}_{0,10,30,100}_{16,32}; do
   IFS='_' read -r n_ex n_in w <<< "$comb"
   printf "I: parameters n_ex=%2d, n_in=%3d, wordlen=%2d\n" $n_ex $n_in $w
 
   for s in {768,1024,1536,2048,3072}; do
+=======
+<<<<<<< Updated upstream
+N_EX=30
+for comb in {10,30,100}_{8,16,32}; do
+  IFS='_' read -r n_in w <<< "$comb"
+  printf "I: parameters n_ex=%2d, n_in=%3d, wordlen=%2d\n" $N_EX $n_in $w
+
+  for s in {128,256,768,1024,1536,2048,3072}; do
+=======
+n_ex=10
+w=16
+for comb in {175,250}; do
+  IFS='_' read -r n_in <<< "$comb"
+  printf "I: parameters n_ex=%2d, n_in=%3d, wordlen=%2d\n" $n_ex $n_in $w
+
+  for s in {768,1024,1536,2048,3072}; do
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
     printf "I:   security=%4d\n" $s
     # In case we want to skip this iteration,
     # both log files should exist.
