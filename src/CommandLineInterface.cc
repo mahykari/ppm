@@ -84,6 +84,10 @@ void CLI::parse() {
       assert (args.contains("-nlocks"));
       unsigned nLocks = std::stoul(args["-nlocks"]);
       system = std::make_unique<Locks>(nLocks);
+    } else if (sysName == "bs") {
+      system = std::make_unique<BloodSugarSensor>();
+    } else if (sysName == "osc") {
+      system = std::make_unique<BitOscillator>();
     } else {
       printf("Error: invalid system name\n");
       exit(EXIT_FAILURE);

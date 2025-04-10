@@ -76,4 +76,20 @@ public:
   virtual const std::vector<bool>& data() override;
 };
 
+class BloodSugarSensor : public MonitorableSystem {
+public:
+  unsigned bloodSugarLevel = 0;
+  std::vector<bool> x = std::vector<bool> (9, 0);
+  virtual void next() override;
+  virtual const std::vector<bool>& data() override;
+};
+
+class BitOscillator : public MonitorableSystem {
+public:
+  bool bit = 0;
+  std::vector<bool> x = {0, 0};
+  virtual void next() override;
+  virtual const std::vector<bool>& data() override;
+};
+
 #endif

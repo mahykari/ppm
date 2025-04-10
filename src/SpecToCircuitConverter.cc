@@ -421,6 +421,7 @@ void BlifParser::parseInputs(const std::string& line) {
   this->monitorStateLength = 0;
   this->systemStateLength = 0;
   while (iss >> input) {
+    std::cout << "BlifParser: input=" << input << '\n';
     assert (input.starts_with("monitor[") or input.starts_with("system["));
     // Inputs are indexed manually.
     // ASSUMPTION: Monitor inputs always come before system inputs.

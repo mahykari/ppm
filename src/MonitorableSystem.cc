@@ -137,3 +137,21 @@ const std::vector<bool>& Locks::data() {
   dataVec = flatten(locks);
   return dataVec;
 }
+
+void BloodSugarSensor::next() {
+  this->bloodSugarLevel = 205;
+}
+
+const std::vector<bool>& BloodSugarSensor::data() {
+  this->x = toBinary(this->bloodSugarLevel, 9);
+  return this->x;
+}
+
+void BitOscillator::next() {
+  this->bit = not this->bit;
+}
+
+const std::vector<bool>& BitOscillator::data() {
+  this->x = toBinary(this->bit, 2);
+  return this->x;
+}
