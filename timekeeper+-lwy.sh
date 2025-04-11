@@ -33,7 +33,7 @@ mkdir -p logs
 # The sets represent n_in (number of internal doors) and wordlen respectively.
 <<<<<<< Updated upstream
 
-for comb in {10,30}_{0,10,30,100}_{16,32}; do
+for comb in {10,30}_{0,10,30,100,175,200}_{16,32}; do
   IFS='_' read -r n_ex n_in w <<< "$comb"
   printf "I: parameters n_ex=%2d, n_in=%3d, wordlen=%2d\n" $n_ex $n_in $w
 
